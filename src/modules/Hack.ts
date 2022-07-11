@@ -7,6 +7,7 @@ import HackDefault from "logic/HackDefault";
 import HackHWGW from "logic/HackHWGW";
 import { CURRENT_BITNODE } from "lib/Variables";
 import HackMaxHP from "logic/HackMaxXP";
+import HackSupportStocks from "logic/HackSupportStocks";
 
 export const HackingStrategy = {
     async init(ns: NS) {
@@ -43,10 +44,16 @@ class HackStrategy {
     }
 
     static select_algorithm(ns: NS, servers: ServerObject[], player: PlayerObject) {
+        if (CURRENT_BITNODE === 8) {
+            if (player.market.api.tix && ns.ls("home", "/Temp/stock-getPosition.txt").length > 0) {
+                return new HackSupportStocks(ns, servers, player)
+            }
+        }
+
         if ([8].includes(CURRENT_BITNODE)) {
             return new HackMaxHP(ns, servers, player);
         }
-
+        
         if (servers.reduce((acc,cur) => acc + cur.ram.trueMax, 0) >= Math.pow(2,20)) {
             return new HackHWGW(ns, servers, player);
         }

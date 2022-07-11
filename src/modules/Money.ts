@@ -27,7 +27,7 @@ export const MoneyStrategy = {
 
 
             if (ns.ps("home").every(p => p.filename !== SYS_FILES.HACKNET.toString())) {
-                if (player.market.api.tix) {
+                if (player.market.api.tix && !ns.ps("home").some(proc => proc.filename === SYS_FILES.MARKET.toString())) {
                     ReservedRam.use(ns, SYS_FILES.MARKET.toString());
                 }
 
