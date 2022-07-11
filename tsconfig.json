@@ -5,9 +5,21 @@
     "rootDir": "src/",
     "baseUrl": "src/",
     "paths": {
-      "/lib/*": [
-        "lib/*"
-      ]
+      "lib/*": [
+        "lib/*",
+      ],
+      "logic/*": [
+        "logic/*",
+      ],
+      "modules/*": [
+        "modules/*",
+      ],
+      "sys/*": [
+        "sys/*",
+      ],
+      "coding_contracts/*": [
+        "coding_contracts/*",
+      ],
     },
     "outDir": "build/",
     "moduleResolution": "node",
