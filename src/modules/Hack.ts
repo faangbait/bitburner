@@ -5,6 +5,8 @@ import { PInfo } from "lib/Players";
 import { SInfo } from "lib/Servers";
 import HackDefault from "logic/HackDefault";
 import HackHWGW from "logic/HackHWGW";
+import { CURRENT_BITNODE } from "lib/Variables";
+import HackMaxHP from "logic/HackMaxXP";
 
 export const HackingStrategy = {
     async init(ns: NS) {
@@ -20,13 +22,6 @@ export const HackingStrategy = {
         }
 
         logger.log("Hack Logic Initialized")
-    },
-
-    async select_algorithm(ns:NS, servers: ServerObject[], player: PlayerObject) {
-        if (servers.reduce((acc,cur) => acc + cur.ram.trueMax, 0) >= Math.pow(2,20)) {
-            return new HackHWGW(ns, servers, player);
-        }
-        return new HackDefault(ns, servers, player);
     },
 
     async loop(ns: NS) {
@@ -48,6 +43,14 @@ class HackStrategy {
     }
 
     static select_algorithm(ns: NS, servers: ServerObject[], player: PlayerObject) {
+        if ([8].includes(CURRENT_BITNODE)) {
+            return new HackMaxHP(ns, servers, player);
+        }
+
+        if (servers.reduce((acc,cur) => acc + cur.ram.trueMax, 0) >= Math.pow(2,20)) {
+            return new HackHWGW(ns, servers, player);
+        }
+
         return new HackDefault(ns, servers, player);
     }
 

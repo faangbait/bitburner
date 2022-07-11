@@ -204,7 +204,7 @@ export default class HackDefault {
     }
 
     __get_targets(ns: NS, servers: ServerObject[]): ServerObject[] {
-        return servers.filter(t => t.isTarget && (!this.disqualify_source(ns, t)))
+        return servers.filter(t => t.isTarget && (!this.disqualify_target(ns, t)))
     }
 
     __prepare_attackers(ns: NS, attackers: ServerObject[]): ServerObject[] {
