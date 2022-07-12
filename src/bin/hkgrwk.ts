@@ -2,7 +2,7 @@
  * @typedef {import(".").NS} ns
  * 
  * @argument {string} target
- * @argument {boolean} loop defaults true
+ * @argument {boolean} runonce defaults false
  *
  * @export
  * @param {ns} ns
@@ -18,26 +18,29 @@ export const main = async (ns: NS) => {
     ns.enableLog("weaken");
 
     let args = ns.args;
-    if (typeof args[0] == "string") {
-        let target_host = args[0];
-        do {
-            await check_control_sequence(ns);
-            let target = ServerCache.read(ns, target_host);
-            if (!target) {
-                await ns.sleep(100)
-            } else {
-                let sec = target.security.level;
-                let minsec = target.security.min;
-                let money = target.money.available;
-                let maxMoney = target.money.max;
+    let target = args[0];
+    let runonce = args[1];
 
-                if (sec > minsec + 5) {
-                    await ns.weaken(target.id);
-                } else if (money < 0.75 * maxMoney) {
-                    await ns.grow(target.id);
-                } else { await ns.hack(target.id); }
-            }
+    if (typeof target !== "string") { return }
+    if (typeof runonce !== "boolean") { runonce = false }
 
-        } while (!ns.args[1]);
-    }
+    do {
+        await check_control_sequence(ns);
+        let t = ServerCache.read(ns, target);
+        if (!t) {
+            await ns.sleep(100)
+        } else {
+            let sec = t.security.level;
+            let minsec = t.security.min;
+            let money = t.money.available;
+            let maxMoney = t.money.max;
+
+            if (sec > minsec + 5) {
+                await ns.weaken(t.id);
+            } else if (money < 0.75 * maxMoney) {
+                await ns.grow(t.id);
+            } else { await ns.hack(t.id); }
+        }
+
+    } while (!runonce);
 }

@@ -15,12 +15,13 @@ export async function main(ns: NS) {
     let args = ns.args;
     let logger = new TermLogger(ns);
 
+    let city = args[0];
+    if (typeof (city) !== "string") { return }
+
     try {
-        if (typeof (args[0]) === "string") {
-            ns.singularity.travelToCity(args[0]);
-        }
+        ns.singularity.travelToCity(city);
     } catch {
-        logger.err(`REQUIRED TRAVEL: ${args[0]}`)
+        logger.err(`REQUIRED TRAVEL: ${city}`)
     }
 
 }

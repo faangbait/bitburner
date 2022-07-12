@@ -2,6 +2,7 @@
  * @typedef {import(".").NS} ns
  * 
  * @argument {string} name the faction name
+ * @argument {number} amount the donation amount
  *
  * @export
  * @param {ns} ns
@@ -15,13 +16,15 @@ export async function main(ns: NS) {
     let args = ns.args;
     let logger = new TermLogger(ns);
 
-    let faction_name = args[0];
+    let name = args[0];
+    let amount = args[1];
 
-    if (typeof faction_name !== "string") { return }
+    if (typeof name !== "string") { return }
+    if (typeof amount !== "number") { return }
 
     try {
-        ns.singularity.joinFaction(faction_name);
+        ns.singularity.donateToFaction(name, amount);
     } catch {
-        logger.err(`REQUIRED FACTION JOIN: ${faction_name}`)
+        logger.err(`REQUIRED FACTION DONATION: ${name} - ${amount}`)
     }
 }
