@@ -8,14 +8,14 @@ export const main = async (ns: NS) => {
 
         if (count > 120) {
             ns.tprint("scheduled reboot");
-            ns.ps("home").filter(process => process.filename != SYS_FILES.KEEPALIVE.toString()).forEach(process => ns.kill(process.pid));
-            ns.run(SYS_FILES.PHOENIX.toString());
+            ns.ps("home").filter(process => process.filename != SYS_FILES.KEEPALIVE).forEach(process => ns.kill(process.pid));
+            ns.run(SYS_FILES.PHOENIX);
 
             count = 0;
         }
 
-        if (ns.ps("home").filter(process => process.filename == SYS_FILES.PHOENIX.toString()).length != 1) {
-            ns.run(SYS_FILES.PHOENIX.toString());
+        if (ns.ps("home").filter(process => process.filename == SYS_FILES.PHOENIX).length != 1) {
+            ns.run(SYS_FILES.PHOENIX);
             ns.print("phoenix not found");
         }
 
@@ -31,8 +31,8 @@ export const main = async (ns: NS) => {
 
             ns.tprint("error ", e);
 
-            ns.ps("home").filter(process => process.filename != SYS_FILES.KEEPALIVE.toString()).forEach(process => ns.kill(process.pid));
-            ns.run(SYS_FILES.PHOENIX.toString());
+            ns.ps("home").filter(process => process.filename != SYS_FILES.KEEPALIVE).forEach(process => ns.kill(process.pid));
+            ns.run(SYS_FILES.PHOENIX);
 
         }
         count++;

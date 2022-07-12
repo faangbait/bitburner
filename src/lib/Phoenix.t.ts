@@ -3,7 +3,7 @@ declare module "Phoenix" {
      * @public
      */
     interface ServerObject {
-        threadCount: (scriptRam: number, strictMode?: boolean) => number;
+        threadCount: (scriptRam: number , strictMode?: boolean) => number;
         sudo: () => void;
         id: string;
         hostname: string;
@@ -218,7 +218,7 @@ declare module "Phoenix" {
                     gained: number;
                     rate: number;
                 }
-
+                
             }
         },
         hnet: {
@@ -276,7 +276,7 @@ declare module "Phoenix" {
     /**
      * @public
      */
-    interface SleeveObject {
+     interface SleeveObject {
         id: number,
         hp: {
             current: number,
@@ -360,7 +360,7 @@ declare module "Phoenix" {
         augs: {
             owned: string[],
             buyable: { cost: number, name: string }[]
-            buy: (augName: string) => boolean;
+            buy: (augName: string) => boolean;        
         },
         actions: {
             bladeburner: (action: string, contract?: string) => boolean
@@ -383,7 +383,7 @@ declare module "Phoenix" {
         threads: number,
         home_required: boolean,
         args: (string|number|boolean)[]
-    }
+     }
 
     /**
      * @public

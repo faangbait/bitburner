@@ -17,7 +17,8 @@ export const PurchaseServers = async (ns: NS, servers: ServerObject[]) => {
     const MIN_SIZE = Math.min(18, Math.max(6, servers.filter(s => s.isHome)[0].power));
 
     let purchased_servers = servers.filter(s => s.purchased);
-    let strongest_server, weakest_server;
+    let strongest_server: ServerObject;
+    let weakest_server: ServerObject;
 
     if (purchased_servers.length > 0) {
         strongest_server = purchased_servers.reduce((max, cur) => cur.power > max.power ? cur : max);
