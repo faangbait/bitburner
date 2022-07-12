@@ -10,7 +10,8 @@ export enum PORTS {
 
 export enum CONTROL_SEQUENCES {
     SIGHUP = 1,
-    PAUSE
+    PAUSE,
+    LIQUIDATE_CAPITAL
 }
 
 export enum SYS_FILES {

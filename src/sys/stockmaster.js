@@ -1,6 +1,9 @@
 // credit to alain bryden
 // https://github.com/alainbryden/bitburner-scripts
 
+import { check_control_sequence } from "lib/Database";
+import { CONTROL_SEQUENCES, PORTS } from "lib/Variables";
+
 let disableShorts = false;
 let commission = 100000; // Buy/sell commission. Expected profit must exceed this to buy anything.
 let totalProfit = 0.0; // We can keep track of how much we've earned since start.
@@ -282,6 +285,12 @@ async function initAllStocks(ns) {
 
 /** @param {NS} ns **/
 async function refresh(ns, has4s, allStocks, myStocks) {
+    await check_control_sequence(ns);
+        
+    while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.LIQUIDATE_CAPITAL) {
+        await ns.asleep(10);
+    }
+
     let holdings = 0;
 
     // Dodge hefty RAM requirements by spawning a sequence of temporary scripts to collect info for us one function at a time

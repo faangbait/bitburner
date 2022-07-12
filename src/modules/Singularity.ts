@@ -4,7 +4,7 @@ import { TermLogger } from "lib/Helpers";
 import { PInfo } from "lib/Players";
 import { SInfo } from "lib/Servers";
 import { ReservedRam } from "lib/Swap";
-import { FACTION_MODEL, SINGULARITY_FILES, SYS_FILES } from "lib/Variables";
+import { CONTROL_SEQUENCES, FACTION_MODEL, PORTS, SINGULARITY_FILES, SYS_FILES } from "lib/Variables";
 import { GameState } from "lib/GameState";
 
 export const SingularityModule = {
@@ -15,14 +15,20 @@ export const SingularityModule = {
         logger.log("Singularity Enabled")
     },
 
-    async manage_software(ns: NS, player: PlayerObject) {
-        if (!player.software.tor  ||
-            !player.software.ssh  ||
-            !player.software.ftp  ||
-            !player.software.smtp ||
-            !player.software.http ||
-            !player.software.sql) {
+    async manage_software(ns: NS, player: PlayerObject): Promise<void> {
+        let ports_before = player.ports;
+        if (ports_before === 5) { return }
+        
                 await ReservedRam.use(ns, SINGULARITY_FILES.MANAGE_SOFTWARE)
+        await ns.asleep(1000);
+
+        while (PInfo.detail(ns).ports === ports_before) {
+            // we need more capital
+            await ns.writePort(PORTS.control, CONTROL_SEQUENCES.LIQUIDATE_CAPITAL);
+            await ns.asleep(200);
+            await ReservedRam.use(ns, SINGULARITY_FILES.MANAGE_SOFTWARE);
+            await ns.asleep(2000);
+            ns.readPort(PORTS.control);
             }
     },
 

@@ -1,4 +1,6 @@
 import { NodeStats, NS } from "Bitburner";
+import { check_control_sequence } from "lib/Database";
+import { CONTROL_SEQUENCES, PORTS } from "lib/Variables";
 
 export const main = async (ns: NS) => {
     ns.disableLog("ALL");
@@ -37,6 +39,12 @@ export const main = async (ns: NS) => {
     let nodes: Map<number, NodeStats> = get_nodes();
 
     while (nodes.size < 8 || Array.from(nodes.values()).reduce((acc, cur) => acc + cur.level, 0) < 100) {
+        await check_control_sequence(ns);
+
+        while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.LIQUIDATE_CAPITAL) {
+            await ns.asleep(10);
+        }
+
         ns.clearLog();
         ns.print("Node\tLevel\tRAM\tCores\tProd/s")
 
@@ -67,6 +75,12 @@ export const main = async (ns: NS) => {
     // continue buying until past breakeven point
 
     while (true) {
+        await check_control_sequence(ns);
+        
+        while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.LIQUIDATE_CAPITAL) {
+            await ns.asleep(10);
+        }
+
         ns.clearLog();
         ns.print("Node\tLevel\tRAM\tCores\tProd/s")
         // upgrade existing
@@ -107,33 +121,6 @@ export const main = async (ns: NS) => {
             if (node.level < 200) { ratios.push({cost: levelUpgradeCost, payback: levelPaybackTime, idx:i, upgrade: UpgradeType.level}) }
             if (node.ram < 64) { ratios.push({cost: ramUpgradeCost, payback: ramPaybackTime, idx:i, upgrade: UpgradeType.ram}) }
             if (node.cores < 20) { ratios.push({cost: coreUpgradeCost, payback: corePaybackTime, idx:i, upgrade: UpgradeType.core}) }
-            
-    
-            // const currentNodeUpgrades = [
-            //     {
-            //         // ratio: levelUpgradeRatio,
-            //         cost: levelUpgradeCost,
-            //         payback: levelPaybackTime,
-            //         idx: i,
-            //         upgrade: UpgradeType.level
-            //     },
-            //     {
-            //         // ratio: ramUpgradeRatio,
-            //         cost: ramUpgradeCost,
-            //         payback: ramPaybackTime,
-            //         idx: i,
-            //         upgrade: UpgradeType.ram
-            //     },
-            //     {
-            //         // ratio: coreUpgradeRatio,
-            //         cost: coreUpgradeCost,
-            //         payback: corePaybackTime,
-            //         idx: i,
-            //         upgrade: UpgradeType.core
-            //     },
-
-            // ];
-            // ratios.push(...currentNodeUpgrades);
         }
 
         if (ratios.every(r => r.payback > BREAKEVEN_TIME)) { 
@@ -169,39 +156,6 @@ export const main = async (ns: NS) => {
             }
         }
 
-        // calc most profitable upgrade
-        // const { cost, idx, upgrade } = ratios.sort((a, b) => b.ratio - a.ratio)[0]
-        // if (cost !== Infinity && cost) {
-
-        //     while (get_money() < cost) {
-        //         await ns.sleep(1);
-        //     }
-        //     switch (upgrade) {
-        //         case UpgradeType.level:
-        //             ns.hacknet.upgradeLevel(idx, 1);
-        //             break;
-        //         case UpgradeType.ram:
-        //             ns.hacknet.upgradeRam(idx, 1);
-        //             break;
-        //         case UpgradeType.core:
-        //             ns.hacknet.upgradeCore(idx, 1);
-        //             break;
-        //         default:
-        //             continue;
-        //     }
-        // }
-
-        // check if we can purchase a new node
-        // const purchaseNodeCost = ns.hacknet.getPurchaseNodeCost();
-        // const missingMoney = purchaseNodeCost - get_money();
-        // if (missingMoney < 0) { ns.hacknet.purchaseNode(); } else if (missingMoney < hacknetProduction * SLEEP_TIME) {
-        //     while (get_money() < purchaseNodeCost) {
-        //         await ns.sleep(1);
-        //     }
-        //     ns.hacknet.purchaseNode();
-        // }
-
-        // await ns.sleep(SLEEP_TIME);
         nodes = get_nodes();
     }
 
