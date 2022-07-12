@@ -13,7 +13,7 @@ export const MoneyStrategy = {
         const logger = new TermLogger(ns);
 
         if (![8].includes(CURRENT_BITNODE)) {
-            ReservedRam.use(ns, SYS_FILES.HACKNET.toString())
+            await ReservedRam.use(ns, SYS_FILES.HACKNET)
         }
         
     },
@@ -25,10 +25,7 @@ export const MoneyStrategy = {
             let player = PInfo.detail(ns);
             servers.filter(s => !s.admin && player.ports >= s.ports.required).forEach(s => s.sudo())
 
-
-            if (ns.ps("home").every(p => p.filename !== SYS_FILES.HACKNET.toString())) {
-                if (player.market.api.tix && !ns.ps("home").some(proc => proc.filename === SYS_FILES.MARKET.toString())) {
-                    ReservedRam.use(ns, SYS_FILES.MARKET.toString());
+                    await ReservedRam.use(ns, SYS_FILES.MARKET);
                 }
 
                 if (![8].includes(CURRENT_BITNODE)) {

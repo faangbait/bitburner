@@ -8,6 +8,7 @@ import HackHWGW from "logic/HackHWGW";
 import { CURRENT_BITNODE } from "lib/Variables";
 import HackMaxHP from "logic/HackMaxXP";
 import HackSupportStocks from "logic/HackSupportStocks";
+import { PORTS } from "lib/Variables";
 
 export const HackingStrategy = {
     async init(ns: NS) {
@@ -29,6 +30,9 @@ export const HackingStrategy = {
         const logger = new TermLogger(ns);
         while (true) {
             let { servers, player } = await HackStrategy.init(ns);
+            while(ns.peek(PORTS.swap) !== "NULL PORT DATA") {
+                await ns.asleep(30000);
+            }
             HackStrategy.do_hack(ns, servers, player);
             await ns.asleep(1000);
         }

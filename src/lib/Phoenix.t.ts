@@ -373,6 +373,15 @@ declare module "Phoenix" {
             uni: (uni: string, cls: string) => boolean
             travel: (city: string) => boolean
         }
+    }
 
+    /**
+     * @public
+     */
+    interface HomeExec {
+        file: string,
+        threads: number,
+        home_required: boolean,
+        args: (string|number|boolean)[]
      }
 }

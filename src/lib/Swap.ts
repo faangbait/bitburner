@@ -1,29 +1,28 @@
 import { NS } from "Bitburner";
-import { BIN_FILES, RESERVED_HOME_RAM } from "lib/Variables";
+import { BIN_FILES, PORTS, RESERVED_HOME_RAM } from "lib/Variables";
+import { HomeExec } from "Phoenix";
 
 export const ReservedRam = {
-    launch_max_reserve_shares(ns: NS) {
+    launch_max_reserve_shares(ns: NS, extra = 0) {
         let home = ns.getServer("home");
-        let shares = Math.floor(Math.min(home.maxRam - home.ramUsed, RESERVED_HOME_RAM) / 4);
-        if (shares > 0) { ns.exec(BIN_FILES.RESERVED_SHARE.toString(), "home", shares) }
+        let shares = Math.floor(Math.min(home.maxRam - home.ramUsed, extra + RESERVED_HOME_RAM) / 4);
+        if (shares > 0) { return ns.exec(BIN_FILES.SWAP_RAM,"home",shares) } else { return 0 }
     },
 
-    use(ns: NS, script: string, threads: number = 1, args: (string | number | boolean)[] = []) {
-        let swap = ns.ps("home").filter(p => p.filename === BIN_FILES.RESERVED_SHARE.toString());
-
-        if (swap.length > 0) {
-            swap.forEach(p => ns.kill(p.pid));
-            let using_pid = ns.exec(script, "home", threads, ...args);
-            ReservedRam.launch_max_reserve_shares(ns);
-            ReservedRam.watch(ns, using_pid)
+    async use(ns: NS, script: string, threads: number = 1, args: (string | number | boolean)[] = []) {
+        let request: HomeExec = {
+            file: script,
+            threads: threads,
+            home_required: true,
+            args: args
         }
-    },
 
-    async watch(ns: NS, using_pid: number) {
-        while (ns.ps("home").filter(p => p.pid === using_pid)) {
-            await ns.asleep(500);
+        await ns.tryWritePort(PORTS.swap, JSON.stringify(request))
+        let relaunch = 0;
+
+        while (relaunch === 0) { 
+            relaunch = ReservedRam.launch_max_reserve_shares(ns);
+            await ns.asleep(1000) 
         }
-        ns.ps("home").filter(p => p.filename === BIN_FILES.RESERVED_SHARE.toString()).forEach(p => ns.kill(p.pid))
-        ReservedRam.launch_max_reserve_shares(ns);
     }
 }

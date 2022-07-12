@@ -31,13 +31,13 @@ export const PurchaseServers = async (ns: NS, servers: ServerObject[]) => {
 
     // sell servers
     if (purchased_servers.length === MAX_SERVERS && can_afford_server(next_upgrade) && weakest_server.power < 18) {
-        ReservedRam.use(ns, SYS_FILES.PURCHASE_SVR.toString(), 1, ["sell", weakest_server.hostname])
+        await ReservedRam.use(ns, SYS_FILES.PURCHASE_SVR, 1, ["sell", weakest_server.hostname])
         purchased_servers.pop() // doesn't matter what we pop, we're about to buy a replacement
     } else { logger.info(`Not attempting to sell server: ${purchased_servers.length} < ${MAX_SERVERS}; ${next_upgrade} cost ${purchase_cost(next_upgrade)}; weakest: ${weakest_server.power}`)}
 
     // buy servers
     if (purchased_servers.length < MAX_SERVERS && can_afford_server(next_upgrade)) {
-        ReservedRam.use(ns, SYS_FILES.PURCHASE_SVR.toString(), 1, ["buy", 'cluster-', ram(next_upgrade)])
+        await ReservedRam.use(ns, SYS_FILES.PURCHASE_SVR, 1, ["buy", 'cluster-', ram(next_upgrade)])
     }  else { logger.info(`Not attempting to buy server: ${purchased_servers.length} >= ${MAX_SERVERS}; ${next_upgrade} cost ${purchase_cost(next_upgrade)}; strongest: ${strongest_server.power}`)}
 
     return SInfo.all(ns);

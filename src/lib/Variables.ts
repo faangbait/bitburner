@@ -31,6 +31,7 @@ export enum PORTS {
     control = 1,
     servers,
     heartbeat,
+    swap
 }
 
 export enum CONTROL_SEQUENCES {
@@ -59,4 +60,5 @@ export enum BIN_FILES {
     BASIC_GROW = "/bin/gr.js",
     BASIC_WEAK = "/bin/wk.js",
     BASIC_SERIAL = "/bin/hkgrwk.js",
+    SWAP_RAM = "/bin/swap_ram.js"
 }
