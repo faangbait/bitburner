@@ -11,14 +11,14 @@
 /*                  SINGULARITY FUNCTIONS                      */
 // import { Singularity } from "modules/Singularity";
 /*                  SINGULARITY FAKES                          */
-import { Singularity } from "modules/SingularityFake";
+import { SingularityModule } from "modules/SingularityFake";
 /***************************************************************/
 
 /***************************************************************/
 /*                  FACTION FUNCTIONS                          */
 // import { Factions } from "modules/Factions";
 /*                  FACTION FAKES                              */
-import { Factions } from "modules/FactionsFake";
+import { FactionModule } from "modules/FactionsFake";
 /***************************************************************/
 
 /***************************************************************/
@@ -75,4 +75,4 @@ import { MoneyStrategy } from "modules/Money";
 /* prefix a module with "home." or "/home" or any derivative.  */
 /***************************************************************/
  
-export { Singularity, Factions, Corps, Crimes, LeetCode, Sleeves, MoneyStrategy, HackingStrategy }
+export { SingularityModule, FactionModule, Corps, Crimes, LeetCode, Sleeves, MoneyStrategy, HackingStrategy }

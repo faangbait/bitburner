@@ -2,7 +2,7 @@ import { NS } from "Bitburner";
 import { TermLogger } from "lib/Helpers";
 import { SInfo } from "lib/Servers";
 import { PInfo } from "lib/Players";
-import { HackingStrategy, MoneyStrategy, Singularity, Factions, Corps, Crimes, LeetCode, Sleeves } from "lib/Config";
+import { HackingStrategy, MoneyStrategy, SingularityModule, FactionModule, Corps, Crimes, LeetCode, Sleeves } from "lib/Config";
 import { PORTS, SYS_FILES } from "lib/Variables";
 import { ReservedRam } from "lib/Swap";
 import { MOTD } from "lib/Motd";
@@ -17,8 +17,8 @@ export async function main(ns: NS) {
     let start_time = performance.now();
 
     await init(ns);
-    await Singularity.init(ns);
-    await Factions.init(ns);
+    await SingularityModule.init(ns);
+    await FactionModule.init(ns);
     await Corps.init(ns);
     await Crimes.init(ns);
     await LeetCode.init(ns);
@@ -28,8 +28,8 @@ export async function main(ns: NS) {
 
     logger.log(`Initialization completed in ${ns.nFormat(performance.now() - start_time, '0.0a')} milliseconds`)
 
-    Singularity.loop(ns).catch(console.error);
-    Factions.loop(ns).catch(console.error);
+    SingularityModule.loop(ns).catch(console.error);
+    FactionModule.loop(ns).catch(console.error);
     Corps.loop(ns).catch(console.error);
     Crimes.loop(ns).catch(console.error);
     LeetCode.loop(ns).catch(console.error);
@@ -65,7 +65,8 @@ async function init(ns: NS) {
         .forEach(s => s.pids.forEach(p => ns.kill(p.pid)))
 
     servers.filter(s => s.id === "home").forEach(
-        s => s.pids.filter(p => ![SYS_FILES.KEEPALIVE.toString(), SYS_FILES.PHOENIX.toString()].includes(p.filename))
+        // s => s.pids.filter(p => ![SYS_FILES.KEEPALIVE, SYS_FILES.PHOENIX].includes(p.filename))
+        s => s.pids.filter(p => p.filename !== SYS_FILES.KEEPALIVE && p.filename !== SYS_FILES.PHOENIX)
             .forEach(p => ns.kill(p.pid))
     )
 
@@ -79,7 +80,7 @@ async function heartbeat(ns: NS) {
     if (SInfo.detail(ns, "home").ram.trueMax >= 32) {
         ns.clearPort(PORTS.heartbeat);
         await ns.writePort(PORTS.heartbeat, new Date().valueOf());
-        if (ns.ps("home").every(p => p.filename != SYS_FILES.KEEPALIVE.toString())) {
+        if (ns.ps("home").every(p => p.filename !== SYS_FILES.KEEPALIVE)) {
             ns.exec(SYS_FILES.KEEPALIVE, "home")
         }
     }

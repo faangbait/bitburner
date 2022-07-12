@@ -5,9 +5,9 @@ import { PInfo } from "lib/Players";
 import { SInfo } from "lib/Servers";
 import HackDefault from "logic/HackDefault";
 import HackHWGW from "logic/HackHWGW";
-import { CURRENT_BITNODE } from "lib/Variables";
 import HackMaxHP from "logic/HackMaxXP";
 import HackSupportStocks from "logic/HackSupportStocks";
+import { GameState } from "lib/GameState";
 import { PORTS } from "lib/Variables";
 
 export const HackingStrategy = {
@@ -48,13 +48,13 @@ class HackStrategy {
     }
 
     static select_algorithm(ns: NS, servers: ServerObject[], player: PlayerObject) {
-        if (CURRENT_BITNODE === 8) {
+        if (GameState.read(ns).bitnode.current === 8) {
             if (player.market.api.tix && ns.ls("home", "/Temp/stock-getPosition.txt").length > 0) {
                 return new HackSupportStocks(ns, servers, player)
             }
         }
 
-        if ([8].includes(CURRENT_BITNODE)) {
+        if ([8].includes(GameState.read(ns).bitnode.current)) {
             return new HackMaxHP(ns, servers, player);
         }
         

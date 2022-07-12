@@ -1,7 +1,7 @@
 import {NS} from "Bitburner";
 import { TermLogger } from "lib/Helpers";
 
-export const Singularity = {
+export const SingularityModule = {
     async init(ns: NS) {
         const logger = new TermLogger(ns);
         logger.log("Singularity Disabled")

@@ -1,31 +1,5 @@
-import { SourceFileLvl } from "Bitburner";
-
 // Set a fixed amount of RAM to reserve on home for non-Phoenix scripts.
 export const RESERVED_HOME_RAM = 16;
-
-// manual required prior to BN5; if BN5, just set {n: 5, lvl: 1} and the rest will be calculated
-export const BITNODES_COMPLETED: SourceFileLvl[] = [
-    {n: 1, lvl: 1},
-    {n: 2, lvl: 0},
-    {n: 3, lvl: 0},
-    {n: 4, lvl: 0},
-    {n: 5, lvl: 0},
-    {n: 6, lvl: 0},
-    {n: 7, lvl: 0},
-    {n: 8, lvl: 0},
-    {n: 9, lvl: 0},
-    {n: 10, lvl: 0},
-    {n: 11, lvl: 0},
-    {n: 12, lvl: 0},
-    {n: 13, lvl: 0},
-    {n: 14, lvl: 0},
-    {n: 15, lvl: 0},
-    {n: 16, lvl: 0},
-    {n: 17, lvl: 0}
-]
-
-export const CURRENT_BITNODE: number = 8;
-
 
 export enum PORTS {
     control = 1,
@@ -41,14 +15,15 @@ export enum CONTROL_SEQUENCES {
 
 export enum SYS_FILES {
     KEEPALIVE = "/sys/keepalive.js",
+    LAUNCHER = "/sys/launcher.js",
     PHOENIX = "/sys/phoenix.js",
     TUCSON = "/sys/tucson.js",
     HACKNET = "/sys/hacknet.js",
     PURCHASE_SVR = "/sys/manage_servers.js",
     MARKET = "/sys/stockmaster.js",
     MONITOR = "/sys/monitor.js",
-
 }
+
 
 export enum BIN_FILES {
     RESERVED_SHARE = "/bin/reserved_share.js",
@@ -62,3 +37,80 @@ export enum BIN_FILES {
     BASIC_SERIAL = "/bin/hkgrwk.js",
     SWAP_RAM = "/bin/swap_ram.js"
 }
+
+export enum SINGULARITY_FILES {
+    CONNECT_SERVER = "/singularity/connect_to_server.js",
+    MANAGE_SOFTWARE = "/singularity/manage_software.js",
+    DESTROY_DAEMON = "/singularity/destroy_world_daemon.js",
+    TRAVEL = "/singularity/travel.js",
+    JOIN_FACTION = "/singularity/join_faction.js",
+    INSTALL_AUGS = "/singularity/install_augmentations.ts"
+}
+
+export enum FACTIONS {
+    "Sector12" = "Sector-12",
+    "Aevum" = "Aevum",
+    "Chongqing" = "Chongqing",
+    "NewTokyo" = "New Tokyo",
+    "Ishima" = "Ishima",
+    "Volhaven" = "Volhaven",
+    "TianDiHui" = "Tian Di Hui",
+    "Netburners" = "Netburners",
+    "CyberSec" = "CyberSec",
+    "NiteSec" = "NiteSec",
+    "TheBlackHand" = "The Black Hand",
+    "BitRunners" = "BitRunners",
+    "ECorp" = "ECorp",
+    "MegaCorp" = "MegaCorp",
+    "KuaiGongInternational" = "KuaiGong International",
+    "FourSigma" = "Four Sigma",
+    "NWO" = "NWO",
+    "BladeIndustries" = "Blade Industries",
+    "OmniTekIncorporated" = "OmniTek Incorporated",
+    "BachmanAsociates" = "Bachman & Asociates",
+    "ClarkeIncorporated" = "Clarke Incorporated",
+    "FulcrumSecretTechnologies" = "Fulcrum Secret Technologies",
+    "SlumSnakes" = "Slum Snakes",
+    "Tetrads" = "Tetrads",
+    "Silhouette" = "Silhouette",
+    "SpeakersfortheDead" = "Speakers for the Dead",
+    "TheDarkArmy" = "The Dark Army",
+    "TheSyndicate" = "The Syndicate",
+    "TheCovenant" = "The Covenant",
+    "Daedalus" = "Daedalus",
+    "Illuminati" = "Illuminati"
+}
+
+export const FACTION_MODEL = [
+    { id: FACTIONS.Sector12, blocks: [FACTIONS.Chongqing, FACTIONS.NewTokyo, FACTIONS.Ishima, FACTIONS.Volhaven] },
+    { id: FACTIONS.Aevum, blocks: [FACTIONS.Chongqing, FACTIONS.NewTokyo, FACTIONS.Ishima, FACTIONS.Volhaven] },
+    { id: FACTIONS.Chongqing, blocks: [FACTIONS.Sector12, FACTIONS.Aevum, FACTIONS.Volhaven] },
+    { id: FACTIONS.NewTokyo, blocks: [FACTIONS.Sector12, FACTIONS.Aevum, FACTIONS.Volhaven] },
+    { id: FACTIONS.Ishima, blocks: [FACTIONS.Sector12, FACTIONS.Aevum, FACTIONS.Volhaven] },
+    { id: FACTIONS.Volhaven, blocks: [FACTIONS.Sector12, FACTIONS.Aevum, FACTIONS.Chongqing, FACTIONS.NewTokyo, FACTIONS.Ishima] },
+    { id: FACTIONS.TianDiHui, blocks: [] },
+    { id: FACTIONS.Netburners, blocks: [] },
+    { id: FACTIONS.CyberSec, blocks: [] },
+    { id: FACTIONS.NiteSec, blocks: [] },
+    { id: FACTIONS.TheBlackHand, blocks: [] },
+    { id: FACTIONS.BitRunners, blocks: [] },
+    { id: FACTIONS.ECorp, blocks: [] },
+    { id: FACTIONS.MegaCorp, blocks: [] },
+    { id: FACTIONS.KuaiGongInternational, blocks: [] },
+    { id: FACTIONS.FourSigma, blocks: [] },
+    { id: FACTIONS.NWO, blocks: [] },
+    { id: FACTIONS.BladeIndustries, blocks: [] },
+    { id: FACTIONS.OmniTekIncorporated, blocks: [] },
+    { id: FACTIONS.BachmanAsociates, blocks: [] },
+    { id: FACTIONS.ClarkeIncorporated, blocks: [] },
+    { id: FACTIONS.FulcrumSecretTechnologies, blocks: [] },
+    { id: FACTIONS.SlumSnakes, blocks: [] },
+    { id: FACTIONS.Tetrads, blocks: [] },
+    { id: FACTIONS.Silhouette, blocks: [] },
+    { id: FACTIONS.SpeakersfortheDead, blocks: [] },
+    { id: FACTIONS.TheDarkArmy, blocks: [] },
+    { id: FACTIONS.TheSyndicate, blocks: [] },
+    { id: FACTIONS.TheCovenant, blocks: [] },
+    { id: FACTIONS.Daedalus, blocks: [] },
+    { id: FACTIONS.Illuminati, blocks: [] },
+]
