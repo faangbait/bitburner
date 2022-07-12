@@ -1,7 +1,7 @@
 import { NS } from "Bitburner";
 import { ServerObject } from "Phoenix";
 import { RESERVED_HOME_RAM } from "lib/Variables";
-import { Cache } from "lib/Database";
+import { ServerCache } from "lib/Database";
 
 export const SInfo = {
     all(ns: NS): ServerObject[] {
@@ -132,7 +132,7 @@ export const SInfo = {
             if (repeat) {
                 await ns.asleep(1000);
             }
-            await Cache.update(ns, SInfo.detail(ns, hostname));
+            await ServerCache.update(ns, SInfo.detail(ns, hostname));
         } while (repeat)
     }
 }

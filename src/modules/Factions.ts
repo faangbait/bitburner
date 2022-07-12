@@ -3,8 +3,9 @@ import { FactionObject, PlayerObject, ServerObject } from "Phoenix";
 import { TermLogger } from "lib/Helpers";
 import { PInfo } from "lib/Players";
 import { SInfo } from "lib/Servers";
-import { FACTIONS, FACTION_MODEL, SINGULARITY_FILES } from "lib/Variables";
+import { FACTIONS, FACTION_MODEL, PORTS, SINGULARITY_FILES } from "lib/Variables";
 import { ReservedRam } from "lib/Swap";
+import { FactionCache } from "lib/Database";
 
 export const FactionModule = {
     async init(ns: NS) {
@@ -12,6 +13,16 @@ export const FactionModule = {
         let player = PInfo.detail(ns);
         const logger = new TermLogger(ns);
         logger.log("Factions Enabled")
+
+        ns.clearPort(PORTS.factions);
+    
+        let factions = FactionModule.all(ns);
+    
+        for (const f of factions) {
+            await FactionModule.update_cache(ns, f.name, false)
+            FactionModule.update_cache(ns, f.name).catch(console.error);
+            await ns.asleep(4121);
+        }
     },
 
     async loop(ns: NS) {
@@ -29,10 +40,8 @@ export const FactionModule = {
 
         for (let s of faction_servers.filter(s => s.admin && !s.backdoored && s.level <= player.hacking.level)) {
             await ReservedRam.use(ns, SINGULARITY_FILES.CONNECT_SERVER, 1, [s.id, true]);
+            await ns.asleep(30000);
         }
-
-        
-
     },
 
     all(ns: NS): FactionObject[] {
@@ -118,6 +127,15 @@ export const FactionModule = {
         }
 
         return faction
-    }
+    },
+
+    async update_cache(ns: NS, faction_name: string, repeat = true) {
+        do {
+            if (repeat) {
+                await ns.asleep(1000);
+            }
+            await FactionCache.update(ns, FactionModule.detail(ns, faction_name));
+        } while (repeat)
+    },
 }
 

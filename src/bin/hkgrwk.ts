@@ -9,7 +9,7 @@
  */
 
 import { NS } from "Bitburner";
-import { Cache, check_control_sequence } from "lib/Database";
+import { ServerCache, check_control_sequence } from "lib/Database";
 
 export const main = async (ns: NS) => {
     ns.disableLog("ALL");
@@ -22,7 +22,7 @@ export const main = async (ns: NS) => {
         let target_host = args[0];
         do {
             await check_control_sequence(ns);
-            let target = Cache.read(ns, target_host);
+            let target = ServerCache.read(ns, target_host);
             if (!target) {
                 await ns.sleep(100)
             } else {
