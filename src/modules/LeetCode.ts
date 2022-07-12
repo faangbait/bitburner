@@ -216,6 +216,7 @@ export const LeetCode = {
 
     async loop(ns: NS) {
         let servers = SInfo.all(ns);
+        let logger = new TermLogger(ns);
 
         while (true) {
             for (const server of servers) {
@@ -230,7 +231,10 @@ export const LeetCode = {
                     } catch (e) { }
 
                     if (solution) {
-                        ns.tprint(ns.codingcontract.attempt(solution, contractName, server.id, { returnReward: true }))
+                        let attempt = ns.codingcontract.attempt(solution, contractName, server.id, { returnReward: true });
+                        if (attempt) {
+                            logger.info(`${contractType}: ${attempt}`)
+                        } else { logger.err(`${contractType}: ${attempt}`)}
                     }
                 }
             }
