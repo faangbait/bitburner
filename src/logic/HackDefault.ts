@@ -82,7 +82,7 @@ export default class HackDefault {
             }
 
             if (t.money.available / t.money.max <= .9 && t.security.level <= t.security.min + 1) {
-                thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, (t.money.max / t.money.available)))
+                thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, (t.money.max / Math.max(t.money.available,1))))
             }
 
             if (t.security.level > t.security.min) {
@@ -185,7 +185,7 @@ export default class HackDefault {
             `${ns.nFormat(Math.max(0, s.security.level), "0.0")}/${ns.nFormat(Math.max(0, s.security.min), "0.0")}`,
             `${ns.nFormat(s.hackTime / 1000, '0a')}`,
             `${ns.nFormat(Math.ceil(ns.hackAnalyzeThreads(s.id, (s.money.max * .05))), '0a')}`,
-            `${ns.nFormat(Math.ceil(ns.growthAnalyze(s.id, s.money.max / s.money.available)), '0a')}`,
+            `${ns.nFormat(Math.ceil(ns.growthAnalyze(s.id, s.money.max / Math.max(1,s.money.available))), '0a')}`,
             `${ns.nFormat(Math.ceil((0.002 + s.security.level - s.security.min) / .05), '0a')}`
         ]);
         pt.create(headers, rows);

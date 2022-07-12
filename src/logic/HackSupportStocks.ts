@@ -106,39 +106,12 @@ export default class HackSupportStocks extends HackDefault {
     }
 
     disqualify_target(ns: NS, s: ServerObject): boolean {
-        let position = this.get_position(ns, s);
-        if (position) {
-            return !position.some(p => p > 0)
-        }
-        return true
+        return Array.from(this.symbols.keys()).includes(s.hostname)
     }
 
     generate_target_matrix(ns: NS, attackers: ServerObject[], targets: ServerObject[]): DeploymentBundle[] {
         let bundles: DeploymentBundle[] = [];
         let required_threads: Map<string, {h_threads: number, g_threads: number, w_threads: number}> = new Map();
-
-        if (targets.length === 0) {
-            let file = {
-                job: "weaken",
-                filename: BIN_FILES.BASIC_WEAK.toString(),
-                ram: 1.75
-            }
-
-            for (const a of attackers) {
-                let threads = a.threadCount(file.ram)
-                if (threads > 0) {
-                    bundles.push({
-                        file: file.filename,
-                        attacker: a.id,
-                        threads: threads,
-                        args: ["n00dles", a.isHome]
-                    });
-                }
-            }
-        } else {
-            SInfo.detail(ns, "n00dles").targeted_by.forEach(proc => ns.kill(proc.pid))
-        }
-
         for (const t of targets) {
             let thread_batch = {
                 h_threads: 0,
@@ -151,7 +124,7 @@ export default class HackSupportStocks extends HackDefault {
             }
 
             if (this.get_long(ns, t)) {
-                thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, (t.money.max / t.money.available)))
+                thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, (t.money.max / Math.max(t.money.available,1))))
             }
             
             if (this.get_short(ns, t)) {
@@ -190,7 +163,6 @@ export default class HackSupportStocks extends HackDefault {
 
                                     assigned_ram += threads * file.ram
                                 }
-
                             }
                             break;
                         case "grow":
@@ -203,7 +175,7 @@ export default class HackSupportStocks extends HackDefault {
                                         threads: threads,
                                         args: [t_id, true]
                                     })
-                                    
+
                                     assigned_ram += threads * file.ram
                                 }
                             }

@@ -59,7 +59,7 @@ export default class HackHWGW extends HackDefault {
             }
 
             if (t.money.max > t.money.available || t.security.level > t.security.min) {
-                thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, t.money.max / (t.money.available)))
+                thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, t.money.max / Math.max(t.money.available, 1)))
                 thread_batch.w1_threads = Math.ceil((0.002 + t.security.level - t.security.min) / .05)
                 thread_batch.w2_threads = Math.ceil((thread_batch.g_threads * .004) / .05)
             } else {

@@ -17,7 +17,7 @@ export const main = async (ns: NS) => {
             `${ns.nFormat(Math.max(0, s.security.level), "0.0")}/${ns.nFormat(Math.max(0, s.security.min), "0.0")}`,
             `${ns.nFormat(s.hackTime / 1000, '0a')}`,
             `${ns.nFormat(Math.ceil(ns.hackAnalyzeThreads(s.id, (s.money.max * .01))), '0a')}`,
-            `${ns.nFormat(Math.ceil(ns.growthAnalyze(s.id, s.money.max / s.money.available)), '0a')}`,
+            `${ns.nFormat(Math.ceil(ns.growthAnalyze(s.id, s.money.max / Math.max(1,s.money.available))), '0a')}`,
             `${ns.nFormat(Math.ceil((0.002 + s.security.level - s.security.min) / .05), '0a')}`
         ]);
         pt.create(headers, rows);
