@@ -5,7 +5,7 @@ import { PInfo } from "lib/Players";
 import { SInfo } from "lib/Servers";
 import HackDefault from "logic/HackDefault";
 import HackHWGW from "logic/HackHWGW";
-import HackMaxHP from "logic/HackMaxXP";
+import HackMaxXP from "logic/HackMaxXP";
 import HackSupportStocks from "logic/HackSupportStocks";
 import { GameState } from "lib/GameState";
 import { PORTS } from "lib/Variables";
@@ -50,12 +50,12 @@ class HackStrategy {
     static select_algorithm(ns: NS, servers: ServerObject[], player: PlayerObject) {
         if (GameState.read(ns).bitnode.current === 8) {
             if (player.market.api.tix && ns.ls("home", "/Temp/stock-getPosition.txt").length > 0) {
-                return new HackSupportStocks(ns, servers, player)
+                // return new HackSupportStocks(ns, servers, player) // TODO: Temp disabled, broken
             }
         }
 
         if ([8].includes(GameState.read(ns).bitnode.current)) {
-            return new HackMaxHP(ns, servers, player);
+            return new HackMaxXP(ns, servers, player);
         }
         
         if (servers.reduce((acc,cur) => acc + cur.ram.trueMax, 0) >= Math.pow(2,20)) {

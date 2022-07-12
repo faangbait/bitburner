@@ -3,7 +3,7 @@ import { BIN_FILES } from "lib/Variables";
 import { DeploymentBundle, PlayerObject, ServerObject } from "Phoenix";
 import HackDefault from "logic/HackDefault";
 
-export default class HackMaxHP extends HackDefault {
+export default class HackMaxXP extends HackDefault {
     constructor(ns: NS, servers: ServerObject[], player: PlayerObject) {
         super(ns, servers, player);
         this.files = [

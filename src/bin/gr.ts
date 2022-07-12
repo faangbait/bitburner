@@ -21,13 +21,14 @@ export const main = async (ns: NS) => {
     let args = ns.args;
     let logger = new TermLogger(ns);
 
-    if (typeof args[0] == "string") {
-        let target = args[0];
-        do {
-            await check_control_sequence(ns);
-            await ns.grow(target);
-        } while (!args[1]);
-    } else {
-        logger.err("Invalid arguments")
-    }
+    let target = args[0];
+    let runonce = args[1];
+
+    if (typeof target !== "string") { return }
+    if (typeof runonce !== "boolean") { runonce = false }
+
+    do {
+        await check_control_sequence(ns);
+        await ns.grow(target);
+    } while (!runonce);
 }
