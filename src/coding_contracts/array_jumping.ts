@@ -9,11 +9,11 @@
 
 
 export const ArrayJumping1 = {
-    solve(params: number[]): boolean {
-        return Jumping.solve(params).includes(Infinity) ? false : true;
+    solve(params: number[]): number {
+        return Jumping.solve(params).includes(Infinity) ? 0 : 1;
     },
 
-    tests(params: number[]): boolean {
+    tests(params: number[]): number {
         // if (![
         //     { params: [1,1,2,3,4], solution: true },
         //     { params: [1, 1, 2, 0, 1, 2, 2, 0], solution: true },
@@ -21,7 +21,7 @@ export const ArrayJumping1 = {
         
         return ArrayJumping1.solve(params);
     },
-    answer(params: number[]): boolean { return ArrayJumping1.tests(params); }
+    answer(params: number[]): number { return ArrayJumping1.tests(params); }
 }
 
 export const ArrayJumping2 = {

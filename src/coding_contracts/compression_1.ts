@@ -15,6 +15,10 @@ export const RLECompression = {
                 count++
                 i++
             }
+            while (count > 9) {
+                let carry = count -= 9
+                encoding += "9" + params[i]
+            }
             encoding += count.toString() + params[i]
             i++;
         }
