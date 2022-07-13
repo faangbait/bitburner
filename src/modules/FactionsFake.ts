@@ -12,17 +12,11 @@ export const FactionModule = {
     async loop(ns: NS) {},
 
     all(ns:NS): FactionObject[] {
-        return FACTION_MODEL.map(f => FactionModule.detail(ns, f.id))
+        return []
     },
 
-    detail(ns: NS, faction_name: string): FactionObject {
-        let faction_id = FACTIONS[faction_name];
-        let faction = {
-            id: faction_id,
-            name: faction_name,
-            join_method: () => {}
-        }
-        return faction
+    detail(ns: NS, faction_name: string): FactionObject | null {
+        return null
     }
 }
 

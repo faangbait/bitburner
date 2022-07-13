@@ -6,6 +6,7 @@ import { SInfo } from "lib/Servers";
 import { FACTIONS, FACTION_MODEL, PORTS, SINGULARITY_FILES } from "lib/Variables";
 import { ReservedRam } from "lib/Swap";
 import { FactionCache } from "lib/Database";
+import { GameState } from "lib/GameState";
 
 export const FactionModule = {
     async init(ns: NS) {
@@ -45,18 +46,44 @@ export const FactionModule = {
     },
 
     all(ns: NS): FactionObject[] {
-        return FACTION_MODEL.map(f => FactionModule.detail(ns, f.id))
+        let results:  FactionObject[] = []
+        for (const f of Array.from(FACTION_MODEL.keys())) {
+            let detail = FactionModule.detail(ns, f)
+            if (detail) {
+                results.push(detail)
+            }
+        }
+         return results
     },
 
-    detail(ns: NS, faction_name: string): FactionObject {
+    detail(ns: NS, faction_name: string): FactionObject | null {
         let faction_id = FACTIONS[faction_name];
+        if (!faction_id) { return null; }
+
+        let player = PInfo.detail(ns);
+
         let faction = {
             id: faction_id,
             name: faction_name,
-            join_method: () => {
+            rep: 0,
+            favor: 0,
+            favor_gain: 0,
+            augs: [],
+            blocks: FACTION_MODEL.get(faction_id) || [],
+            inv_blocked: (function() { return FactionModule.all(ns).every(f => !f.blocks.includes(faction_name) || !player.faction.membership.includes(f.name))}),
+            donate: async (amount: number) => { await ReservedRam.use(ns, SINGULARITY_FILES.FACTION_DONATE,1, [faction_name, amount])},
+            join: async () => { await ReservedRam.use(ns, SINGULARITY_FILES.FACTION_JOIN, 1, [faction_name]) }, 
+            work: async (type?: string, focus?: boolean) => {
+                let args: (string|number|boolean)[] = [faction_name];
+
+                if (type) { args.push(type) }
+                if (focus) { args.push(focus) }
+
+                await ReservedRam.use(ns, SINGULARITY_FILES.FACTION_WORK, 1, args)},
+            get_invited: async () => {
                 switch (faction_id) {
                     case FACTIONS.Aevum:
-                        return ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Aevum"]) // TODO: must be awaited
+                        return await ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Aevum"]) 
                     case FACTIONS.BachmanAsociates:
                         break;
                     case FACTIONS.BitRunners:
@@ -64,12 +91,15 @@ export const FactionModule = {
                     case FACTIONS.BladeIndustries:
                         break;
                     case FACTIONS.Chongqing:
-                        return ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Chongqing"])
+                        return await ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Chongqing"])
                     case FACTIONS.ClarkeIncorporated:
                         break;
                     case FACTIONS.CyberSec:
                         break;
                     case FACTIONS.Daedalus:
+                        let aug_reg = GameState.read(ns).bitnode.multipliers.augmentations.daedalus_req || 30;
+                        let hacking_req = 2500;
+                        let money_req = 100000000000;
                         break;
                     case FACTIONS.ECorp:
                         break;
@@ -80,7 +110,7 @@ export const FactionModule = {
                     case FACTIONS.Illuminati:
                         break;
                     case FACTIONS.Ishima:
-                        return ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Ishima"])
+                        return await ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Ishima"])
                     case FACTIONS.KuaiGongInternational:
                         break;
                     case FACTIONS.MegaCorp:
@@ -90,7 +120,7 @@ export const FactionModule = {
                     case FACTIONS.Netburners:
                         break;
                     case FACTIONS.NewTokyo:
-                        return ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["New Tokyo"])
+                        return await ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["New Tokyo"])
                     case FACTIONS.NiteSec:
                         break;
                     case FACTIONS.NiteSec:
@@ -98,7 +128,7 @@ export const FactionModule = {
                     case FACTIONS.OmniTekIncorporated:
                         break;
                     case FACTIONS.Sector12:
-                        return ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Sector-12"])
+                        return await ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Sector-12"])
                     case FACTIONS.Silhouette:
                         break;
                     case FACTIONS.SlumSnakes:
@@ -116,9 +146,9 @@ export const FactionModule = {
                     case FACTIONS.TheSyndicate:
                         break;
                     case FACTIONS.TianDiHui:
-                        return ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Ishima"])
+                        return await ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Ishima"])
                     case FACTIONS.Volhaven:
-                        return ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Volhaven"])
+                        return await ReservedRam.use(ns, SINGULARITY_FILES.TRAVEL, 1, ["Volhaven"])
                     default:
                         break;
                 }
@@ -134,8 +164,10 @@ export const FactionModule = {
             if (repeat) {
                 await ns.asleep(1000);
             }
-            await FactionCache.update(ns, FactionModule.detail(ns, faction_name));
+            let detail = FactionModule.detail(ns, faction_name);
+            if (detail) {
+                await FactionCache.update(ns, detail);
+            }
         } while (repeat)
     },
 }
-
