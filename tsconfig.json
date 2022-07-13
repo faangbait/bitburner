@@ -20,6 +20,9 @@
       "coding_contracts/*": [
         "coding_contracts/*",
       ],
+      "structures/*": [
+        "structures/*",
+      ],
     },
     "outDir": "build/",
     "moduleResolution": "node",
