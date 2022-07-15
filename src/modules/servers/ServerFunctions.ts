@@ -4,12 +4,38 @@
  */
 
 import { NS } from "Bitburner";
-import { ServerInfo } from "./Servers";
+import { ServerInfo } from "modules/servers/Servers";
+import { ServerObject } from "./ServerEnums";
 
-const gain_admin_on_servers = (ns: NS) => {
-    ServerInfo.all(ns).forEach(s => s.sudo())
+export const ServerFuncs = {
+    sudo(ns: NS) {
+        ServerInfo.all(ns).forEach(s => {
+            if (!s.admin) {
+                try {
+                    ns.brutessh(s.id);
+                    ns.ftpcrack(s.id);
+                    ns.relaysmtp(s.id);
+                    ns.httpworm(s.id);
+                    ns.sqlinject(s.id);
+                } catch {}
+                finally {
+                    ns.nuke(s.id)
+                }
+            }
+        })
+    },
+
+    threadCount(server: ServerObject, scriptRam: number, strictMode = false) {
+        let threads = Math.floor(server.ram.free / scriptRam);
+
+        if (strictMode && threads <= 0) {
+            throw "no threads available";
+        }
+        return threads;
+    },
+
+    backdoor_critical_servers(ns: NS) {
+
+    }
 }
 
-const backdoor_critical_servers = (ns: NS) => {
-    
-}

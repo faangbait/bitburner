@@ -1,8 +1,7 @@
 // credit to alain bryden
 // https://github.com/alainbryden/bitburner-scripts
 
-import { check_control_sequence } from "lib/Database";
-import { CONTROL_SEQUENCES, PORTS } from "lib/Variables";
+import { check_control_sequence, PORTS, CONTROL_SEQUENCES  } from "lib/Database";
 
 let disableShorts = false;
 let commission = 100000; // Buy/sell commission. Expected profit must exceed this to buy anything.

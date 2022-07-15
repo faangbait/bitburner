@@ -14,7 +14,8 @@ import { ServerInfo } from "modules/servers/Servers";
 import { DeploymentBundle, ServerObject } from "modules/servers/ServerEnums";
 import { PlayerObject } from "modules/players/PlayerEnums";
 import { AugCache } from "modules/augmentations/AugmentationCache";
-import { BitNodeCache } from "./bitnodes/BitnodeCache";
+import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
+import { ServerFuncs } from "modules/servers/ServerFunctions";
 
 export const DaemonStrategy = {
     async init(ns: NS) {},
@@ -25,6 +26,7 @@ export const DaemonStrategy = {
             let servers = ServerInfo.all(ns);
             let player = PlayerInfo.detail(ns);
 
+            ServerFuncs.sudo(ns)
             await GameStrategy.execute_strategy(ns, servers, player);
             await ns.asleep(1000);
         }
@@ -46,7 +48,8 @@ export const DaemonStrategy = {
  */
 class GameStrategy { // TODO: Adjust this
     static select_algorithm(ns: NS, servers: ServerObject[], player: PlayerObject) {
-        if (servers.filter(s => s.id === "w0r1dd43m0n")) {
+        let logger = new TermLogger(ns);
+        if (servers.filter(s => s.id === "w0r1d_d43m0n")) {
             return new DaemonVisible(ns, servers, player);
         }
 
@@ -80,7 +83,9 @@ class GameStrategy { // TODO: Adjust this
     }
 
     static async execute_strategy(ns: NS, servers: ServerObject[], player: PlayerObject) {
+        let logger = new TermLogger(ns);
         const gs = this.select_algorithm(ns, servers, player);
+        // logger.log(`Executing ${gs.module}`)
         
         if (await gs.__send_control_sequences(ns, servers, player)) {
             await ns.asleep(2000);
@@ -105,6 +110,7 @@ class GameStrategy { // TODO: Adjust this
         }
 
         results.prepared_attackers = gs.__prepare_attackers(ns, results.legal_attackers);
+        results.prepared_targets = gs.__prepare_targets(ns, results.legal_targets);
         results.bundles = gs.__package(ns, results.prepared_attackers, results.prepared_targets);
         results.pids = gs.__deploy(ns, results.bundles)
 

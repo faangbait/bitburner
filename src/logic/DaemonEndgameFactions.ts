@@ -6,5 +6,6 @@ import { ServerObject } from "modules/servers/ServerEnums";
 export default class DaemonEndgameFactions extends DaemonDefault {
     constructor(ns: NS, servers: ServerObject[], player: PlayerObject) {
         super(ns, servers, player);
+        this.module = "DAEMON_ENDGAME";
     }
 }

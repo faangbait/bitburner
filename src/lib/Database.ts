@@ -47,30 +47,33 @@ export enum CONTROL_SEQUENCES {
     LIQUIDATE_CAPITAL
 }
 
-
 export const Cache = {
     all(ns: NS, port: PORTS): Map<string, any> {
         let data = ns.peek(port);
         if (data === "NULL PORT DATA") { return new Map() } else {
-            return JSON.parse(data)
+            let res: any[] = JSON.parse(data);
+            return new Map(res.map(o => [o.id, o]))
         }
     },
-    read(ns: NS, port: PORTS, id: any) {
-        let cached = Cache.all(ns, port);
-        return cached.get(id)
-    },
-    async update(ns: NS, port: PORTS, obj: any) {
+
+    async update(ns: NS, port: PORTS, obj: any): Promise<Map<string,any>> {
         let cached = Cache.all(ns, port);
         cached.set(obj.id, obj);
         ns.clearPort(port);
-        await ns.tryWritePort(port, JSON.stringify(cached))
+        await ns.tryWritePort(port, JSON.stringify(Array.from(cached.values())))
         return cached
     },
-    async delete(ns: NS, port: PORTS, id: any) {
+
+    read(ns: NS, port: PORTS, id: string) : any {
+        let cached = Cache.all(ns, port);
+        return cached.get(id)
+    },
+
+    async delete(ns: NS, port: PORTS, id: any): Promise<Map<string,any>> {
         let cached = Cache.all(ns, port);
         cached.delete(id);
         ns.clearPort(port);
-        await ns.tryWritePort(port, JSON.stringify(cached))
+        await ns.tryWritePort(port, JSON.stringify(Array.from(cached.values())))
         return cached
     }
 }

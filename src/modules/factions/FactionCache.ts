@@ -4,7 +4,7 @@
 
 import { NS } from "Bitburner";
 import { Cache, PORTS } from "lib/Database";
-import { Faction } from "./FactionEnums";
+import { Faction } from "modules/factions/FactionEnums";
 
 
 export const FactionCache = {

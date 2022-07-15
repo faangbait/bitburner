@@ -67,7 +67,6 @@ export interface Faction {
     reputation_req: number;
     backdoor_req: string;
     hnet_req: {level: number, ram: number, core: number}
-    other_req: () => boolean
 }
 
 

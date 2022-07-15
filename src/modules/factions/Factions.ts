@@ -31,7 +31,6 @@ class Faction {
     reputation_req = 0;
     backdoor_req = "";
     hnet_req: { level: number, ram: number, core: number } = { level: 0, ram: 0, core: 0 }
-    other_req: () => boolean = () => true
 
     constructor(ns: NS, name: string) {
         this.id = Factions[name];
@@ -291,7 +290,6 @@ class Faction {
                 this.hack_req = 100;
                 this.combat_req = 300;
                 this.karma_req = -45;
-                this.other_req = () => { return true } // TODO
                 this.type = FactionType.Criminal;
                 break;
             case FactionNames[FactionNames.TheDarkArmy]:
@@ -319,7 +317,6 @@ class Faction {
                 this.offers_hacking = true;
                 this.cash_req = 1.5e7;
                 this.karma_req = -22;
-                this.other_req = () => { return true } // TODO
                 this.type = FactionType.Criminal;
                 break;
             case FactionNames[FactionNames.Tetrads]:
@@ -349,12 +346,10 @@ class Faction {
                 break;
             case FactionNames[FactionNames.ChurchOfTheMachineGod]:
                 this.keep_on_reset = true;
-                this.other_req = () => true
                 this.type = FactionType.Special;
                 break;
             case FactionNames[FactionNames.ShadowsOfAnarchy]:
                 this.keep_on_reset = true;
-                this.other_req = () => true
                 this.type = FactionType.Special;
                 break;
             default:

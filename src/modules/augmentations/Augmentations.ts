@@ -2,8 +2,7 @@
  * Note: File meant to be used by loader apps, not the main script
  */
 import { NS } from "Bitburner";
-import { Factions } from "modules/factions/FactionEnums";
-import { AugmentationNames, Augmentations, AugStats } from "./AugmentationEnums";
+import { AugmentationNames, Augmentations, AugStats } from "modules/augmentations/AugmentationEnums";
 
 class Augmentation {
     id: string;

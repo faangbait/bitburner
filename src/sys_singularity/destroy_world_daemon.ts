@@ -18,7 +18,7 @@ export async function main(ns: NS) {
     let next_bitnode = args[0];
 
     if (typeof next_bitnode !== "number") { return }
-    await ns.write(TEMP_F[TEMP_F.CURRENT_BITNODE], next_bitnode)
+    await ns.write(TEMP_F.CURRENT_BITNODE, next_bitnode)
     
         try {
             ns.singularity.destroyW0r1dD43m0n(next_bitnode, CORE_RUNTIMES.LAUNCHER)

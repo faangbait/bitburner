@@ -9,7 +9,6 @@ import { DaemonStrategy } from "modules/Daemon";
 
 export const main = async (ns: NS) => {
     ns.disableLog("ALL");
-    ns.enableLog("exec");
     ns.tail();
 
     const logger = new TermLogger(ns);
@@ -53,9 +52,9 @@ const init = async (ns: NS) =>{
 
 
 const launch_and_wait = async (ns: NS, script: CACHE_SCRIPTS, threads = 1, args: (string | number | boolean)[] = []) => { // TODO: SWAP RAM
-    let pid = ns.exec(CACHE_SCRIPTS[script], 'home', threads, ...args);
-    await ns.sleep(100);
-    while (ns.isRunning(pid)) { await ns.sleep(10); }
+    let pid = ns.exec(script, 'home', threads, ...args);
+    await ns.asleep(100);
+    while (ns.isRunning(pid)) { await ns.asleep(10); }
 }
 
 const update_players = async (ns: NS) => { while (true) {await launch_and_wait(ns, CACHE_SCRIPTS.PLAYERS); await ns.asleep(1000);}}

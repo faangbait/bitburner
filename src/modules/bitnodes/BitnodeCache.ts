@@ -4,7 +4,7 @@
 
 import { NS } from "Bitburner";
 import { Cache, PORTS } from "lib/Database";
-import { Bitnode } from "./BitnodeEnums";
+import { Bitnode } from "modules/bitnodes/BitnodeEnums";
 
 export const BitNodeCache = {
     all(ns: NS): Map<string,Bitnode> {

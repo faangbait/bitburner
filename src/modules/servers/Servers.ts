@@ -2,7 +2,7 @@
  * Note: OK for main script to use this file
  */
 import { NS } from "Bitburner";
-import { Process, RESERVED_HOME_RAM, ServerObject } from "./ServerEnums";
+import { Process, RESERVED_HOME_RAM } from "modules/servers/ServerEnums";
 
 class Server {
     id: string;
@@ -28,8 +28,6 @@ class Server {
     isAttacker: boolean;
     pids: Process[];
     targeted_by: Process[];
-    sudo: () => void;
-    threadCount: (scriptRam: number, strictMode: boolean) => number;
 
     constructor(ns: NS, hostname: string) {
         let data = ns.getServer(hostname);
@@ -120,30 +118,6 @@ class Server {
             })
         })).filter(p => p.target && p.target.id == hostname);
 
-        this.sudo = function () {
-            if (!this.admin) {
-                try {
-                    ns.brutessh(this.id);
-                    ns.ftpcrack(this.id);
-                    ns.relaysmtp(this.id);
-                    ns.httpworm(this.id);
-                    ns.sqlinject(this.id);
-                }
-                catch { }
-                finally {
-                    ns.nuke(this.id)
-                }
-            }
-        }
-
-        this.threadCount = function (scriptRam: number, strictMode = false): number {
-            let threads = Math.floor(this.ram.free / scriptRam);
-
-            if (strictMode && threads <= 0) {
-                throw "no threads available";
-            }
-            return threads;
-        }
     }
 
 }

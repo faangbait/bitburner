@@ -2,21 +2,23 @@ import { NS } from "Bitburner";
 import { CONTROL_SEQUENCES, PORTS } from "lib/Database";
 import { TermLogger } from "lib/Logger";
 import PrettyTable from "lib/PrettyTable";
-import { ReservedRam } from "lib/Swap";
 import { BIN_SCRIPTS, SINGULARITY_SCRIPTS, SYS_SCRIPTS } from "lib/Variables";
 import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
 import { PlayerObject } from "modules/players/PlayerEnums";
 import { PlayerInfo } from "modules/players/Players";
 import { DeploymentBundle, ServerObject } from "modules/servers/ServerEnums";
 import { ServerInfo } from "modules/servers/Servers";
+import { ServerFuncs } from "modules/servers/ServerFunctions";
 
 export default class DaemonDefault {
     bn: import("/home/ss/dev/bitburner/src/modules/bitnodes/BitnodeEnums").Bitnode;
     logger: TermLogger;
+    module: string;
 
     constructor(ns: NS, servers: ServerObject[], player: PlayerObject) {
         this.bn = BitNodeCache.read(ns, 'current')
         this.logger = new TermLogger(ns);
+        this.module = "DAEMON_DEFAULT";
     }
 
     active_control_sequence(ns: NS, servers: ServerObject[], player: PlayerObject): CONTROL_SEQUENCES | null {
@@ -63,11 +65,11 @@ export default class DaemonDefault {
         let bundles: DeploymentBundle[] = [];
         if (player.ports < 5) {
             let target = {
-                0: 700000,
-                1: 1500000,
-                2: 5000000,
-                3: 30000000,
-                4: 250000000
+                0: 7e5,
+                1: 1.5e6,
+                2: 5e6,
+                3: 3e7,
+                4: 2.5e8
             };
             if (player.money > target[player.ports]) {
                 bundles.push({
@@ -124,7 +126,7 @@ export default class DaemonDefault {
         return bundles
     }
 
-    __purchase_servers(ns: NS, attackers: ServerObject[], max_servers=25, min_size=6): DeploymentBundle[] {
+    __purchase_servers(ns: NS, attackers: ServerObject[], max_servers = 25, min_size = 6): DeploymentBundle[] {
         let bundles: DeploymentBundle[] = [];
         let player = PlayerInfo.detail(ns);
 
@@ -143,9 +145,9 @@ export default class DaemonDefault {
             strongest_server = attackers.filter(s => s.isHome)[0]
             weakest_server = attackers.filter(s => s.isHome)[0]
         }
-        
+
         let next_upgrade = Math.max(min_size, strongest_server.power + 1);
-    
+
         // sell servers
         if (purchased_servers.length === max_servers && can_afford_server(next_upgrade) && weakest_server.power < 18) {
             bundles.push({
@@ -155,8 +157,8 @@ export default class DaemonDefault {
                 args: ["sell", weakest_server.hostname]
             })
             purchased_servers.pop() // doesn't matter what we pop, we're about to buy a replacement
-        } else { this.logger.info(`Not attempting to sell server: ${purchased_servers.length} < ${max_servers}; ${next_upgrade} cost ${purchase_cost(next_upgrade)}; weakest: ${weakest_server.power}`)}
-    
+        } else { this.logger.info(`Not attempting to sell server: ${purchased_servers.length} < ${max_servers}; ${next_upgrade} cost ${purchase_cost(next_upgrade)}; weakest: ${weakest_server.power}`) }
+
         // buy servers
         if (purchased_servers.length < max_servers && can_afford_server(next_upgrade)) {
             bundles.push({
@@ -165,10 +167,10 @@ export default class DaemonDefault {
                 threads: 1,
                 args: ["buy", "cluster-", ram(next_upgrade)]
             })
-        }  else { this.logger.info(`Not attempting to buy server: ${purchased_servers.length} >= ${max_servers}; ${next_upgrade} cost ${purchase_cost(next_upgrade)}; strongest: ${strongest_server.power}`)}
-    
+        } else { this.logger.info(`Not attempting to buy server: ${purchased_servers.length} >= ${max_servers}; ${next_upgrade} cost ${purchase_cost(next_upgrade)}; strongest: ${strongest_server.power}`) }
 
-    
+
+
         return bundles
     }
 
@@ -190,10 +192,10 @@ export default class DaemonDefault {
 
         bundles.push(...this.__buy_ports(ns));
         if (player.level < 10 && ![8].includes(this.bn.number)) { bundles.push(...this.__hacknet(ns)) }
-        
+
         if (player.market.api.tix) { bundles.push(...this.__market(ns)) }
 
-        if (player.ports >= 5 && ![8].includes(this.bn.number)) { 
+        if (player.ports >= 5 && ![8].includes(this.bn.number)) {
             bundles.push(...this.__purchase_servers(ns, attackers))
         }
 
@@ -220,20 +222,35 @@ export default class DaemonDefault {
     ) {
         ns.clearLog();
         let pt = new PrettyTable();
-        var headers = ["TARGET", "CASH", "SEC", "H_TIME", "HACK", "GROW", "WEAK"];
-        var rows = prepared_targets.map(s => [
-            s.id,
-            `${ns.nFormat(s.money.available, "0a")}/${ns.nFormat(s.money.max, "0a")}`,
-            `${ns.nFormat(Math.max(0, s.security.level), "0.0")}/${ns.nFormat(Math.max(0, s.security.min), "0.0")}`,
-            `${ns.nFormat(s.hackTime / 1000, '0a')}`,
-            `${ns.nFormat(Math.ceil(ns.hackAnalyzeThreads(s.id, (s.money.max * .05))), '0a')}`,
-            `${ns.nFormat(Math.ceil(ns.growthAnalyze(s.id, s.money.max / Math.max(1, s.money.available))), '0a')}`,
-            `${ns.nFormat(Math.ceil((0.002 + s.security.level - s.security.min) / .05), '0a')}`
-        ]);
-        pt.create(headers, rows);
-        ns.print(pt.print());
+        let headers = ["TARGET", "SCRIPT", "THREADS"]
+        
+        let targets: Map<string,Map<string,number>> = new Map();
+        
+        bundles.forEach(b => {
+            let target_id = "None";
+            if (b.args[0]) { target_id = b.args[0].toString()}
 
-        ns.print(`Bundles: ${bundles.length}`)
+            let targets_map = targets.get(target_id);
+            if (!targets_map) { targets.set(target_id, new Map()); targets_map = targets.get(target_id) as Map<string, number>; }
+            
+            let threads = targets_map.get(b.file);
+            if (!threads) { targets_map.set(b.file, 0); threads = 0; }
+
+            targets_map.set(b.file, threads + b.threads)
+
+        })
+
+        let rows: string[][] = [];
+
+        for (const [id, file_map] of targets) {
+            for (const [file, threads] of file_map) {
+                rows.push([id, file, threads.toString()])
+            }
+        }
+
+         pt.create(headers, rows);
+        ns.print(this.module);
+        ns.print(pt.print());
 
     }
 
@@ -250,17 +267,21 @@ export default class DaemonDefault {
     }
 
     __get_attackers(ns: NS, servers: ServerObject[]) {
-        return servers.filter(s => s.isAttacker && !(this.disqualify_attacker(ns, s)))
+        return servers.filter(s => s.isAttacker && !this.disqualify_attacker(ns, s))
     }
 
     __get_targets(ns: NS, servers: ServerObject[]) {
-        return servers.filter(s => s.isTarget && !(this.disqualify_target(ns, s)))
+        return servers.filter(s => s.isTarget && !this.disqualify_target(ns, s))
     }
 
     __prepare_attackers(ns: NS, servers: ServerObject[]) {
         return servers.map(s => this.prepare_attacker(ns, s));
     }
-
+    
+    __prepare_targets(ns: NS, servers: ServerObject[]) {
+        return servers.map(s => this.prepare_target(ns, s));
+    }
+    
     __package(ns: NS, attackers: ServerObject[], targets: ServerObject[]): DeploymentBundle[] {
         return this.generate_action_bundle(ns, attackers, targets)
     }
@@ -353,7 +374,7 @@ export default class DaemonDefault {
                     switch (file.job) {
                         case "hack":
                             if (thread_batch.h_threads > 0) {
-                                let threads = Math.min(a.threadCount(file.ram), thread_batch.h_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a, file.ram), thread_batch.h_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
@@ -369,7 +390,7 @@ export default class DaemonDefault {
                             break;
                         case "grow":
                             if (thread_batch.g_threads > 0) {
-                                let threads = Math.min(a.threadCount(file.ram), thread_batch.g_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a, file.ram), thread_batch.g_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
@@ -384,7 +405,7 @@ export default class DaemonDefault {
                             break;
                         case "weaken":
                             if (thread_batch.w_threads > 0) {
-                                let threads = Math.min(a.threadCount(file.ram), thread_batch.w_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a, file.ram), thread_batch.w_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
@@ -466,7 +487,7 @@ export default class DaemonDefault {
                     switch (file.job) {
                         case "hack":
                             if (thread_batch.h_threads > 0) {
-                                let threads = Math.min(a.threadCount(file.ram), thread_batch.h_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a, file.ram), thread_batch.h_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
@@ -482,7 +503,7 @@ export default class DaemonDefault {
                             break;
                         case "grow":
                             if (thread_batch.g_threads > 0) {
-                                let threads = Math.min(a.threadCount(file.ram), thread_batch.g_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a, file.ram), thread_batch.g_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
@@ -497,7 +518,7 @@ export default class DaemonDefault {
                             break;
                         case "weaken":
                             if (thread_batch.w_threads > 0) {
-                                let threads = Math.min(a.threadCount(file.ram), thread_batch.w_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a,file.ram), thread_batch.w_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
@@ -524,7 +545,7 @@ export default class DaemonDefault {
         let bundles: DeploymentBundle[] = [];
         let file = { job: "weaken", filename: BIN_SCRIPTS.BASIC_WEAK, ram: 1.75 }
         for (const a of attackers) {
-            let threads = a.threadCount(file.ram)
+            let threads = ServerFuncs.threadCount(a,file.ram)
             if (threads > 0) {
                 bundles.push({
                     file: file.filename,
@@ -609,7 +630,7 @@ export default class DaemonDefault {
         } = JSON.parse(ns.read("/Temp/stock-getPosition.txt"))
 
         let bundles: DeploymentBundle[] = [];
-        let required_threads: Map<string, {h_threads: number, g_threads: number, w_threads: number}> = new Map();
+        let required_threads: Map<string, { h_threads: number, g_threads: number, w_threads: number }> = new Map();
         for (const t of targets) {
             let thread_batch = {
                 h_threads: 0,
@@ -621,14 +642,14 @@ export default class DaemonDefault {
 
             let ticker = symbols.get(t.hostname);
             if (ticker) {
-                let position: [number,number,number,number] | undefined = positions[ticker];
+                let position: [number, number, number, number] | undefined = positions[ticker];
                 if (position) {
                     if (t.security.level > t.security.min) {
                         thread_batch.w_threads = Math.ceil((t.security.level - t.security.min) / .05)
                     }
 
                     if (position[0] > 0) {
-                        thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, (t.money.max / Math.max(t.money.available,1))))
+                        thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, (t.money.max / Math.max(t.money.available, 1))))
                     }
 
                     if (position[2] > 0) {
@@ -649,7 +670,7 @@ export default class DaemonDefault {
 
         let targeted_servers = Array.from(required_threads.entries())
 
-        targeted_servers.sort(([a_id, a_threads],[b_id, b_threads]) => (a_threads.g_threads + a_threads.h_threads) - (b_threads.g_threads + b_threads.h_threads));
+        targeted_servers.sort(([a_id, a_threads], [b_id, b_threads]) => (a_threads.g_threads + a_threads.h_threads) - (b_threads.g_threads + b_threads.h_threads));
 
 
         let files = [
@@ -678,7 +699,7 @@ export default class DaemonDefault {
                     switch (file.job) {
                         case "hack":
                             if (thread_batch.h_threads > 0) {
-                                let threads = Math.min(a.threadCount(file.ram), thread_batch.h_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a,file.ram), thread_batch.h_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
@@ -693,7 +714,7 @@ export default class DaemonDefault {
                             break;
                         case "grow":
                             if (thread_batch.g_threads > 0) {
-                                let threads = Math.min(a.threadCount(file.ram), thread_batch.g_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a,file.ram), thread_batch.g_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
@@ -708,7 +729,7 @@ export default class DaemonDefault {
                             break;
                         case "weaken":
                             if (thread_batch.w_threads > 0) {
-                                let threads = Math.min(a.threadCount(file.ram), thread_batch.w_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a,file.ram), thread_batch.w_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,

@@ -4,7 +4,7 @@
 
 import { NS } from "Bitburner";
 import { Cache, PORTS } from "lib/Database";
-import { ServerObject } from "./ServerEnums";
+import { ServerObject } from "modules/servers/ServerEnums";
 
 export const ServerCache = {
     all(ns: NS): Map<string,ServerObject> {

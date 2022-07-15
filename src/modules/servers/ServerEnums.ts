@@ -1,8 +1,6 @@
 export const RESERVED_HOME_RAM = 16;
 
 export interface ServerObject {
-    threadCount: (scriptRam: number , strictMode?: boolean) => number;
-    sudo: () => void;
     id: string;
     hostname: string;
     ip: string;

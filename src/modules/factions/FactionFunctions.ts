@@ -8,7 +8,7 @@ import { ReservedRam } from "lib/Swap";
 import { SINGULARITY_SCRIPTS } from "lib/Variables";
 import { PlayerInfo } from "modules/players/Players";
 import { ServerInfo } from "modules/servers/Servers";
-import { FactionCache } from "./FactionCache";
+import { FactionCache } from "modules/factions/FactionCache";
 
 const backdoor_faction_servers = async (ns: NS) => {
     let player = PlayerInfo.detail(ns);

@@ -2,9 +2,58 @@
  * Note: File meant to be used by loader apps, not the main script
  */
 
-import { NS } from "Bitburner";
+import { BitNodeMultipliers, NS } from "Bitburner";
 import { TEMP_F } from "lib/Variables";
-import { BitnodeMultiplier, Bitnodes } from "./BitnodeEnums";
+import { BitnodeMultiplier, Bitnodes } from "modules/bitnodes/BitnodeEnums";
+
+const DEFAULT_MULTS = {
+    AgilityLevelMultiplier: 1,
+    AugmentationMoneyCost: 1,
+    AugmentationRepCost: 1,
+    BladeburnerRank: 1,
+    BladeburnerSkillCost: 1,
+    CharismaLevelMultiplier: 1,
+    ClassGymExpGain: 1,
+    CodingContractMoney: 1,
+    CompanyWorkExpGain: 1,
+    CompanyWorkMoney: 1,
+    CorporationSoftcap: 1,
+    CorporationValuation: 1,
+    CrimeExpGain: 1,
+    CrimeMoney: 1,
+    DaedalusAugsRequirement: 1,
+    DefenseLevelMultiplier: 1,
+    DexterityLevelMultiplier: 1,
+    FactionPassiveRepGain: 1,
+    FactionWorkExpGain: 1,
+    FactionWorkRepGain: 1,
+    FourSigmaMarketDataApiCost: 1,
+    FourSigmaMarketDataCost: 1,
+    GangSoftcap: 1,
+    HackExpGain: 1,
+    HackingLevelMultiplier: 1,
+    HacknetNodeMoney: 1,
+    HomeComputerRamCost: 1,
+    InfiltrationMoney: 1,
+    InfiltrationRep: 1,
+    ManualHackMoney: 1,
+    PurchasedServerCost: 1,
+    PurchasedServerLimit: 1,
+    PurchasedServerMaxRam: 1,
+    PurchasedServerSoftcap: 1,
+    RepToDonateToFaction: 1,
+    ScriptHackMoney: 1,
+    ScriptHackMoneyGain: 1,
+    ServerGrowthRate: 1,
+    ServerMaxMoney: 1,
+    ServerStartingMoney: 1,
+    ServerStartingSecurity: 1,
+    ServerWeakenRate: 1,
+    StaneksGiftExtraSize: 1,
+    StaneksGiftPowerMultiplier: 1,
+    StrengthLevelMultiplier: 1,
+    WorldDaemonDifficulty: 1
+}
 
 class Bitnode {
     id: string;
@@ -12,65 +61,19 @@ class Bitnode {
     completed: number;
     multipliers: BitnodeMultiplier;
 
-    constructor(ns: NS, n: number, completed=0, current?: boolean) {
-        if (current) { this.id = Bitnodes[`current`] } else {this.id = Bitnodes[`BitNode${n}`]}
-        
+    constructor(ns: NS, n: number, completed = 0) {
         this.number = n;
         this.completed = completed;
 
-        let mult = {
-            AgilityLevelMultiplier: 1,
-            AugmentationMoneyCost: 1,
-            AugmentationRepCost: 1,
-            BladeburnerRank: 1,
-            BladeburnerSkillCost: 1,
-            CharismaLevelMultiplier: 1,
-            ClassGymExpGain: 1,
-            CodingContractMoney: 1,
-            CompanyWorkExpGain: 1,
-            CompanyWorkMoney: 1,
-            CorporationSoftcap: 1,
-            CorporationValuation: 1,
-            CrimeExpGain: 1,
-            CrimeMoney: 1,
-            DaedalusAugsRequirement: 1,
-            DefenseLevelMultiplier: 1,
-            DexterityLevelMultiplier: 1,
-            FactionPassiveRepGain: 1,
-            FactionWorkExpGain: 1,
-            FactionWorkRepGain: 1,
-            FourSigmaMarketDataApiCost: 1,
-            FourSigmaMarketDataCost: 1,
-            GangSoftcap: 1,
-            HackExpGain: 1,
-            HackingLevelMultiplier: 1,
-            HacknetNodeMoney: 1,
-            HomeComputerRamCost: 1,
-            InfiltrationMoney: 1,
-            InfiltrationRep: 1,
-            ManualHackMoney: 1,
-            PurchasedServerCost: 1,
-            PurchasedServerLimit: 1,
-            PurchasedServerMaxRam: 1,
-            PurchasedServerSoftcap: 1,
-            RepToDonateToFaction: 1,
-            ScriptHackMoney: 1,
-            ScriptHackMoneyGain: 1,
-            ServerGrowthRate: 1,
-            ServerMaxMoney: 1,
-            ServerStartingMoney: 1,
-            ServerStartingSecurity: 1,
-            ServerWeakenRate: 1,
-            StaneksGiftExtraSize: 1,
-            StaneksGiftPowerMultiplier: 1,
-            StrengthLevelMultiplier: 1,
-            WorldDaemonDifficulty: 1
-        }
-        
-        try {
-            mult = ns.getBitNodeMultipliers()
-        } catch {
-            // read out of file?
+        let current = JSON.parse(ns.read(TEMP_F.CURRENT_BITNODE))
+        let mult: BitNodeMultipliers;
+
+        if (current !== n) {
+            this.id = `BitNode${n}`
+            mult = DEFAULT_MULTS;
+        } else {
+            this.id = 'current'
+            try { mult = ns.getBitNodeMultipliers() } catch { mult = DEFAULT_MULTS; }
         }
 
         this.multipliers = {
@@ -154,24 +157,16 @@ class Bitnode {
  * Returns a list of Bitnode objects
  */
 export const BitnodeInfo = {
-    all(ns: NS): typeof Bitnodes {
-        for (const sf of ns.getOwnedSourceFiles()) {
-            Bitnodes[`BitNode${sf.n}`] = new Bitnode(ns, sf.n, sf.lvl)
-        }
-        return Bitnodes
+    all(ns: NS): Bitnode[] {
+        return ns.getOwnedSourceFiles().map(sf => new Bitnode(ns, sf.n, sf.lvl))
     },
 
-    detail(ns: NS, n: number)  {
-        return BitnodeInfo.all(ns).get(`BitNode${n}`)
+    detail(ns: NS, n: number) {
+        return BitnodeInfo.all(ns).filter(bn => bn.number == n)[0]
     },
 
-    current(ns: NS, current_bitnode?: number) {
-        if (typeof current_bitnode !== "number") {
-            current_bitnode = ns.read(TEMP_F[TEMP_F.CURRENT_BITNODE]);
-            if (typeof current_bitnode !== "number") {
-                return BitnodeInfo.all(ns).get(`current`)
-            }
-        }
-        return Bitnodes[`current`] = new Bitnode(ns, current_bitnode, 0, true)
+    current(ns: NS) {
+        let current = JSON.parse(ns.read(TEMP_F.CURRENT_BITNODE))
+        return new Bitnode(ns, current, 0)
     }
 }

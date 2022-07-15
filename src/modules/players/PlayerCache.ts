@@ -4,7 +4,7 @@
 
 import { NS } from "Bitburner";
 import { Cache, PORTS } from "lib/Database";
-import { PlayerObject } from "./PlayerEnums";
+import { PlayerObject } from "modules/players/PlayerEnums";
 
 export const PlayerCache = {
     all(ns: NS): Map<string,PlayerObject> {

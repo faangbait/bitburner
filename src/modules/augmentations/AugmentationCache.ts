@@ -4,9 +4,10 @@
 
 import { NS } from "Bitburner";
 import { Cache, PORTS } from "lib/Database";
-import { Augmentation } from "./AugmentationEnums";
+import { Augmentation } from "modules/augmentations/AugmentationEnums";
 
 export const AugCache = {
+
     all(ns: NS): Map<string,Augmentation> {
         return Cache.all(ns, PORTS.augmentations)
     },
@@ -21,5 +22,6 @@ export const AugCache = {
 
     async delete(ns: NS, id: string): Promise<Map<string, Augmentation>> {
         return await Cache.delete(ns, PORTS.augmentations, id)
-    }
+    },
+
 }
