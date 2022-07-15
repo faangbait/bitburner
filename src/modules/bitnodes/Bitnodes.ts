@@ -3,6 +3,7 @@
  */
 
 import { NS } from "Bitburner";
+import { TEMP_F } from "lib/Variables";
 import { BitnodeMultiplier, Bitnodes } from "./BitnodeEnums";
 
 class Bitnode {
@@ -11,8 +12,9 @@ class Bitnode {
     completed: number;
     multipliers: BitnodeMultiplier;
 
-    constructor(ns: NS, n: number, completed = 0) {
-        this.id = Bitnodes[`BitNode${n}`]
+    constructor(ns: NS, n: number, completed=0, current?: boolean) {
+        if (current) { this.id = Bitnodes[`current`] } else {this.id = Bitnodes[`BitNode${n}`]}
+        
         this.number = n;
         this.completed = completed;
 
@@ -151,8 +153,25 @@ class Bitnode {
 /**
  * Returns a list of Bitnode objects
  */
-export const get_bitnodes = (ns: NS) => {
-    return ns.getOwnedSourceFiles().map(s => {
-        Bitnodes[`BitNode${s.n}`] = new Bitnode(ns, s.n, s.lvl)
-    })
+export const BitnodeInfo = {
+    all(ns: NS): typeof Bitnodes {
+        for (const sf of ns.getOwnedSourceFiles()) {
+            Bitnodes[`BitNode${sf.n}`] = new Bitnode(ns, sf.n, sf.lvl)
+        }
+        return Bitnodes
+    },
+
+    detail(ns: NS, n: number)  {
+        return BitnodeInfo.all(ns).get(`BitNode${n}`)
+    },
+
+    current(ns: NS, current_bitnode?: number) {
+        if (typeof current_bitnode !== "number") {
+            current_bitnode = ns.read(TEMP_F[TEMP_F.CURRENT_BITNODE]);
+            if (typeof current_bitnode !== "number") {
+                return BitnodeInfo.all(ns).get(`current`)
+            }
+        }
+        return Bitnodes[`current`] = new Bitnode(ns, current_bitnode, 0, true)
+    }
 }

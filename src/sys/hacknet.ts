@@ -1,6 +1,5 @@
 import { NodeStats, NS } from "Bitburner";
-import { check_control_sequence } from "lib/Database";
-import { CONTROL_SEQUENCES, PORTS } from "lib/Variables";
+import { check_control_sequence, CONTROL_SEQUENCES, PORTS } from "lib/Database";
 
 export const main = async (ns: NS) => {
     ns.disableLog("ALL");
@@ -42,7 +41,7 @@ export const main = async (ns: NS) => {
         await check_control_sequence(ns);
 
         while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.LIQUIDATE_CAPITAL) {
-            await ns.asleep(10);
+            await ns.sleep(10);
         }
 
         ns.clearLog();
@@ -78,7 +77,7 @@ export const main = async (ns: NS) => {
         await check_control_sequence(ns);
         
         while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.LIQUIDATE_CAPITAL) {
-            await ns.asleep(10);
+            await ns.sleep(10);
         }
 
         ns.clearLog();

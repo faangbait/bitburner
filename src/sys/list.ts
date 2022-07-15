@@ -7,7 +7,7 @@
  */
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Helpers";
+import { TermLogger } from "lib/Logger";
 import PrettyTable from "lib/PrettyTable";
 import { Scanner } from "lib/Scan";
 

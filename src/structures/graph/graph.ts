@@ -290,7 +290,7 @@ class Graph<T> {
       return this;
     }
     // if v is already in this list do nothing
-    return;
+    return this;
   };
 
   // adds v to neighbour list of u

@@ -1,26 +1,27 @@
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Helpers";
-import { PORTS } from "lib/Variables";
-import { HomeExec } from "Phoenix";
+import { TermLogger } from "lib/Logger";
+import { PORTS } from "lib/Database";
 
 export async function main(ns: NS) {
     let logger = new TermLogger(ns);
     while (true) {
-        let comms: HomeExec | string = JSON.parse(ns.readPort(PORTS.swap));
+        let comms: string = ns.readPort(PORTS.swap);
     
         switch (comms) {
             case "NULL PORT DATA":
                 await ns.share();
+                break;
             default:
-                if (typeof(comms) === "string") {
-                    logger.err(`Invalid communication on Swap port (${PORTS.swap}): ${comms}`) 
+            try {
+                let command = JSON.parse(comms);
+                if (command.home_required) {
+                    ns.spawn(command.file, command.threads, ...command.args)
                 } else {
-                    if (comms.home_required) {
-                        ns.spawn(comms.file, comms.threads, ...comms.args)
-                    } else {
-                        // TODO: Find server with free RAM
-                    }
+                    // TODO: Find server with free RAM
                 }
+            } catch {
+                logger.err(`Error parsing JSON on port ${PORTS.swap}, received: ${comms}`)
+            }
         }
     }
 }

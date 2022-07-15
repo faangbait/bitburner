@@ -9,7 +9,8 @@
  */
 
 import { NS } from "Bitburner";
-import { ServerCache, check_control_sequence } from "lib/Database";
+import { check_control_sequence } from "lib/Database";
+import { ServerCache } from "modules/servers/ServerCache";
 
 export const main = async (ns: NS) => {
     ns.disableLog("ALL");

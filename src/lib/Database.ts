@@ -1,118 +1,77 @@
+/**
+ * Note: File is meant to be zero ram and imported
+ */
 import { NS } from "Bitburner";
-import { FactionObject, ServerObject } from "Phoenix";
-import { TermLogger } from "lib/Helpers";
-import { CONTROL_SEQUENCES, PORTS } from "lib/Variables";
 
-const Cache = {
-    open(ns: NS, port: PORTS): ServerObject[] | FactionObject[] {
+// Non-Singularity version - use one or the other
+export enum CACHE_SCRIPTS {
+    BITNODES = `/sys/cache_bitnode.js`,
+    AUGMENTATIONS = `/sys/cache_augmentations.js`,
+    FACTIONS = `/sys/cache_factions.js`,
+    SERVERS = `/sys/cache_servers.js`,
+    PLAYERS = `/sys/cache_players.js`,
+    CORPORATIONS = `/sys/cache_corporations.js`,
+    SLEEVES = `/sys/cache_sleeves.js`,
+    CRIMES = `/sys/cache_crimes.js`,
+}
+
+// Singularity version - use one or the other
+// export enum CACHE_SCRIPTS {
+//     BITNODES = `/sys_singularity/cache_bitnode.js`,
+//     AUGMENTATIONS = `/sys_singularity/cache_augmentations.js`,
+//     FACTIONS = `/sys_singularity/cache_factions.js`,
+//     SERVERS = `/sys_singularity/cache_servers.js`,
+//     PLAYERS = `/sys_singularity/cache_players.js`,
+//     CORPORATIONS = `/sys_singularity/cache_corporations.js`,
+//     SLEEVES = `/sys_singularity/cache_sleeves.js`,
+//     CRIMES = `/sys_singularity/cache_crimes.js`,
+// }
+
+export enum PORTS {
+    control = 1,
+    augmentations,
+    heartbeat,
+    swap,
+    factions,
+    servers,
+    bitnodes,
+    players,
+    corporations,
+    sleeves,
+    crimes
+}
+
+export enum CONTROL_SEQUENCES {
+    SIGHUP = 1,
+    PAUSE,
+    LIQUIDATE_CAPITAL
+}
+
+
+export const Cache = {
+    all(ns: NS, port: PORTS): Map<string, any> {
         let data = ns.peek(port);
-        if (data === "NULL PORT DATA") {
-            return []
-        } else {
+        if (data === "NULL PORT DATA") { return new Map() } else {
             return JSON.parse(data)
         }
     },
-
-    async create(ns: NS, port: PORTS, obj: any): Promise<ServerObject[] | FactionObject[]> {
-        let logger = new TermLogger(ns);
-        let cached = Cache.open(ns, port) as ServerObject[] | FactionObject[];
-        cached.push(obj);
+    read(ns: NS, port: PORTS, id: any) {
+        let cached = Cache.all(ns, port);
+        return cached.get(id)
+    },
+    async update(ns: NS, port: PORTS, obj: any) {
+        let cached = Cache.all(ns, port);
+        cached.set(obj.id, obj);
         ns.clearPort(port);
-        if (!await ns.tryWritePort(port, JSON.stringify(cached))) {
-            logger.err(`Couldn't write data for ${obj.id} to port ${port}`)
-        }
+        await ns.tryWritePort(port, JSON.stringify(cached))
         return cached
     },
-
-    read(ns:NS, port: PORTS, id: any): ServerObject | FactionObject | undefined {
-        let logger = new TermLogger(ns);
-        let cached = Cache.open(ns, port)  as ServerObject[] | FactionObject[];
-        for (const obj of cached) {
-            if (obj.id === id) { return obj }
-        }
-        logger.err(`Couldn't read data for ${id} from port ${port}`)
-        return undefined
-    },
-
-    async update(ns: NS, port: PORTS, obj: ServerObject | FactionObject) : Promise<ServerObject[] | FactionObject[]> {
-        let logger = new TermLogger(ns);
-        let cached = Cache.open(ns, port);
-        let result = [obj];
-
-        for (const o of cached) {
-            if (o.id !== obj.id) {
-                result.push(o)
-            }
-        }
-
+    async delete(ns: NS, port: PORTS, id: any) {
+        let cached = Cache.all(ns, port);
+        cached.delete(id);
         ns.clearPort(port);
-        if (!await ns.tryWritePort(port, JSON.stringify(result))) {
-            logger.err(`Couldn't write data for ${obj.id} to port ${port}`)
-        }
-        return result as ServerObject[] | FactionObject[]
-    },
-
-    async delete(ns: NS, port: PORTS, id: any): Promise<ServerObject[] | FactionObject[]> {
-        let logger = new TermLogger(ns);
-        let cached = Cache.open(ns, port);
-
-        let result: any[] = [];
-
-        for (const o of cached) {
-            if (o.id !== id) {
-                result.push(o)
-            }
-        }
-
-        ns.clearPort(port);
-        if (!await ns.tryWritePort(port, JSON.stringify(result))) {
-            logger.err(`Couldn't delete data for ${id} from port ${port}`)
-        }
-        return result as ServerObject[] | FactionObject[]
-    } 
-}
-
-export const ServerCache = {
-    open(ns: NS): ServerObject[] {
-        return Cache.open(ns, PORTS.servers) as ServerObject[];
-    },
-
-    async create(ns: NS, obj: ServerObject): Promise<ServerObject[]> {
-        return await Cache.create(ns, PORTS.servers, obj) as ServerObject[];
-    },
-
-    read(ns: NS, id: string): ServerObject | null {
-        return Cache.read(ns, PORTS.servers, id) as ServerObject | null;
-    },
-
-    async update(ns: NS, obj: ServerObject): Promise<ServerObject[]> {
-        return await Cache.update(ns, PORTS.servers, obj) as ServerObject[];
-    },
-
-    async delete(ns: NS, id: string): Promise<ServerObject[]> {
-        return await Cache.delete(ns, PORTS.servers, id) as ServerObject[];
-    }
-}
-
-export const FactionCache = {
-    open(ns: NS): FactionObject[] {
-        return Cache.open(ns, PORTS.factions) as FactionObject[];
-    },
-
-    async create(ns: NS, obj: FactionObject): Promise<FactionObject[]> {
-        return await Cache.create(ns, PORTS.factions, obj) as FactionObject[];
-    },
-
-    read(ns: NS, id: string): FactionObject | null {
-        return Cache.read(ns, PORTS.factions, id) as FactionObject | null;
-    },
-
-    async update(ns: NS, obj: FactionObject): Promise<FactionObject[]> {
-        return await Cache.update(ns, PORTS.factions, obj) as FactionObject[];
-    },
-
-    async delete(ns: NS, id: string): Promise<FactionObject[]> {
-        return await Cache.delete(ns, PORTS.factions, id) as FactionObject[];
+        await ns.tryWritePort(port, JSON.stringify(cached))
+        return cached
     }
 }
 
@@ -125,7 +84,7 @@ export const check_control_sequence = async (ns: NS) => {
             break;
         case CONTROL_SEQUENCES.PAUSE:
             while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.PAUSE) {
-                await ns.sleep(10);
+                await ns.asleep(10);
             }
             break;
         default:

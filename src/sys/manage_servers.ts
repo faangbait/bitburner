@@ -10,7 +10,7 @@
  */
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Helpers";
+import { TermLogger } from "lib/Logger";
 
 export async function main(ns: NS) {
     let args = ns.args;

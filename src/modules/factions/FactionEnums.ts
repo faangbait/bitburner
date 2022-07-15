@@ -1,4 +1,4 @@
-export enum FACTIONS {
+export enum FactionNames {
     Illuminati = "Illuminati",
     Daedalus = "Daedalus",
     TheCovenant = "The Covenant",
@@ -35,6 +35,14 @@ export enum FACTIONS {
     ShadowsOfAnarchy = "Shadows of Anarchy",
 }
 
+export enum FactionType {
+    Criminal,
+    Corporation,
+    Hacking,
+    City,
+    Endgame,
+    Special
+}
 export interface Faction {
     name: string;
     hostname: string;
@@ -57,9 +65,10 @@ export interface Faction {
     combat_req: number;
     karma_req: number;
     reputation_req: number;
-    backdoor_req: string | null;
+    backdoor_req: string;
     hnet_req: {level: number, ram: number, core: number}
     other_req: () => boolean
 }
+
 
 export const Factions: Map<string, Faction> = new Map();

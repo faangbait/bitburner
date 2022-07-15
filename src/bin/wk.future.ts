@@ -10,7 +10,7 @@
 
 import { NS } from "Bitburner";
 import { check_control_sequence } from "lib/Database";
-import { TermLogger } from "lib/Helpers";
+import { TermLogger } from "lib/Logger";
 
 const RUNTIME_MOD = 4;
 

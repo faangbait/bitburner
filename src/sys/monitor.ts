@@ -1,13 +1,13 @@
 import { NS } from "Bitburner";
 import PrettyTable from "lib/PrettyTable";
-import { SInfo } from "lib/Servers";
+import { ServerInfo } from "modules/servers/Servers";
 
 export const main = async (ns: NS) => {
 
     while (true) {
         ns.clearLog();
         ns.tail();
-        let servers = SInfo.all(ns).filter(s => s.isTarget);
+        let servers = ServerInfo.all(ns).filter(s => s.isTarget);
         servers.sort((a, b) => a.level - b.level)
         let pt = new PrettyTable();
         var headers = ["SERVER", "CASH", "SEC", "H_TIME", "HACK", "GROW", "WEAK"];

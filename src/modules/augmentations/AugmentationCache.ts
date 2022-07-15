@@ -1,3 +1,7 @@
+/**
+ * Note: File meant to be zero-ram and imported
+ */
+
 import { NS } from "Bitburner";
 import { Cache, PORTS } from "lib/Database";
 import { Augmentation } from "./AugmentationEnums";

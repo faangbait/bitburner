@@ -8,7 +8,7 @@
  */
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Helpers";
+import { TermLogger } from "lib/Logger";
 import { Scanner } from "lib/Scan";
 
 export async function main(ns: NS) {
