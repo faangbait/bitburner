@@ -46,6 +46,7 @@ export const AugmentationFuncs = {
             return acc + res
         }, 0)
     },
+    
     get_augmentation_path(ns: NS) {
         let aug_list: typeof Augmentations = AugCache.all(ns);
         
@@ -265,6 +266,8 @@ export const AugmentationFuncs = {
                 logger.err("Lost BitNode cache, can't determine current bitnode")
                 break;
         }
+
+        return filt
     }
 }
 
