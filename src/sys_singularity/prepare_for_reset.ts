@@ -20,6 +20,8 @@ export async function main(ns: NS) {
 
     if (typeof soft !== "boolean" ) { soft = false }
 
+    // TODO: Purchase Augmentations
+
     try {
         if (!soft) {
             ns.singularity.installAugmentations(CORE_RUNTIMES.LAUNCHER)
