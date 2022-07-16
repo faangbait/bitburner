@@ -1,8 +1,10 @@
 import { NS } from "Bitburner";
+import { CONTROL_SEQUENCES } from "lib/Database";
 import DaemonDefault from "logic/DaemonDefault";
 import { PlayerObject } from "modules/players/PlayerEnums";
 import { PlayerInfo } from "modules/players/Players";
 import { DeploymentBundle, ServerObject } from "modules/servers/ServerEnums";
+import { ServerInfo } from "modules/servers/Servers";
 
 /**
  * Will run until we have 3 ports. Assume we already have 256GB home ram.
@@ -11,6 +13,20 @@ export default class DaemonFresh extends DaemonDefault {
     constructor(ns: NS, servers: ServerObject[], player: PlayerObject) {
         super(ns, servers, player);
         this.module = "DAEMON_FRESH";
+    }
+
+    active_control_sequence(ns: NS, servers: ServerObject[], player: PlayerObject): CONTROL_SEQUENCES | null {
+        if (["CSEC", "avmnite-02h", "I.I.I.I"].map(s =>
+            ServerInfo.detail(ns, s)).filter(s =>
+                player.ports < s.ports.required &&
+                player.hacking.level >= s.level
+            ).length > 0) { return CONTROL_SEQUENCES.LIQUIDATE_CAPITAL }
+        
+            return null
+    }
+
+    disqualify_target(ns: NS, t: ServerObject): boolean {
+        return t.level > 40
     }
 
     find_focus_task(ns: NS, attackers: ServerObject[], player: PlayerObject): DeploymentBundle[] {

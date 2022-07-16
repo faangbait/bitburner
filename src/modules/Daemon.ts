@@ -52,7 +52,7 @@ export const DaemonStrategy = {
 class GameStrategy { // TODO: Adjust this
     static select_algorithm(ns: NS, servers: ServerObject[], player: PlayerObject) {
         let logger = new TermLogger(ns);
-        if (servers.reduce((a,c) => a + c.power ,0) < 8) {
+        if (servers.find(s => s.isHome && s.ram.trueMax < 256)) {
             return new DaemonMinimal(ns, servers, player);
         }
         
