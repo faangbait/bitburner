@@ -32,7 +32,7 @@ export interface PlayerObject {
             rep: number;
         };
     };
-    createProgram: {
+    createProg: {
         progName: string;
         reqLevel: number;
     };

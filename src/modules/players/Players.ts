@@ -14,7 +14,7 @@ class Player {
     className: string;
     company: { companyName: string; multipliers: { rep: number; }; };
     bladeburner: { multipliers: { analysis: number; max_stamina: number; stamina_gain: number; success_chance: number; }; };
-    createProgram: { progName: string; reqLevel: number; };
+    createProg: { progName: string; reqLevel: number; };
     crime: { type: string; multipliers: { money: number; success: number; }; kills: number; karma: any; };
     work: { isWorking: boolean; type: string; jobs: any; current: { factionName: string; factionDesc: string; }; multipliers: { money: number; }; stats: { agi: { gained: number; rate: number; }; str: { gained: number; rate: number; }; cha: { gained: number; rate: number; }; dex: { gained: number; rate: number; }; def: { gained: number; rate: number; }; hack: { gained: number; rate: number; }; money: { gained: number; rate: number; loss: number; }; rep: { gained: number; rate: number; }; }; };
     charisma: { level: number; exp: number; multipliers: { exp: number; level: number; }; };
@@ -61,7 +61,7 @@ class Player {
             }
         };
 
-        this.createProgram = {
+        this.createProg = {
             progName: data["createProgramName"],
             reqLevel: data["createProgramReqLvl"]
         };
