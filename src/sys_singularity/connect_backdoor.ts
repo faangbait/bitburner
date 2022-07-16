@@ -31,6 +31,7 @@ export async function main(ns: NS) {
             for (let link of route_list) { ns.singularity.connect(link) }
             if (backdoor) {
                 await ns.singularity.installBackdoor();
+                await ns.sleep(30000)
                 ns.singularity.connect("home");
             }
         }
