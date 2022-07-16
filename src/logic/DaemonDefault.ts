@@ -9,6 +9,7 @@ import { PlayerInfo } from "modules/players/Players";
 import { DeploymentBundle, ServerObject } from "modules/servers/ServerEnums";
 import { ServerInfo } from "modules/servers/Servers";
 import { ServerFuncs } from "modules/servers/ServerFunctions";
+import MinHeap from "structures/heaps/minHeap";
 
 export default class DaemonDefault {
     bn: import("/home/ss/dev/bitburner/src/modules/bitnodes/BitnodeEnums").Bitnode;
@@ -223,16 +224,16 @@ export default class DaemonDefault {
         ns.clearLog();
         let pt = new PrettyTable();
         let headers = ["TARGET", "SCRIPT", "THREADS"]
-        
-        let targets: Map<string,Map<string,number>> = new Map();
-        
+
+        let targets: Map<string, Map<string, number>> = new Map();
+
         bundles.forEach(b => {
             let target_id = "None";
-            if (b.args[0]) { target_id = b.args[0].toString()}
+            if (b.args[0]) { target_id = b.args[0].toString() }
 
             let targets_map = targets.get(target_id);
             if (!targets_map) { targets.set(target_id, new Map()); targets_map = targets.get(target_id) as Map<string, number>; }
-            
+
             let threads = targets_map.get(b.file);
             if (!threads) { targets_map.set(b.file, 0); threads = 0; }
 
@@ -248,7 +249,7 @@ export default class DaemonDefault {
             }
         }
 
-         pt.create(headers, rows);
+        pt.create(headers, rows);
         ns.print(this.module);
         ns.print(pt.print());
 
@@ -277,11 +278,11 @@ export default class DaemonDefault {
     __prepare_attackers(ns: NS, servers: ServerObject[]) {
         return servers.map(s => this.prepare_attacker(ns, s));
     }
-    
+
     __prepare_targets(ns: NS, servers: ServerObject[]) {
         return servers.map(s => this.prepare_target(ns, s));
     }
-    
+
     __package(ns: NS, attackers: ServerObject[], targets: ServerObject[]): DeploymentBundle[] {
         return this.generate_action_bundle(ns, attackers, targets)
     }
@@ -314,7 +315,14 @@ export default class DaemonDefault {
 
     __hack_default(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) {
         let bundles: DeploymentBundle[] = [];
-        let required_threads: Map<string, { h_threads: number, g_threads: number, w_threads: number }> = new Map();
+        let target_heap: MinHeap<string> = new MinHeap();
+        let attacker_heap: MinHeap<string> = new MinHeap();
+
+        let target_batch_req: Map<string, {
+            h_threads: number,
+            g_threads: number,
+            w_threads: number
+        }> = new Map();
 
         let files = [
             {
@@ -332,9 +340,159 @@ export default class DaemonDefault {
                 filename: BIN_SCRIPTS.BASIC_WEAK,
                 ram: 1.75,
             }
-
         ]
 
+        let smallest_ram = Math.min(...files.map(f => f.ram));
+
+        for (const t of targets) {
+            let thread_batch = {
+                h_threads: 0,
+                g_threads: 0,
+                w_threads: 0
+            }
+
+            if (t.money.available / t.money.max > .9 && t.security.level <= t.security.min + 1) {
+                thread_batch.h_threads = Math.ceil(ns.hackAnalyzeThreads(t.id, t.money.available * .05))
+            }
+
+            if (t.money.available / t.money.max <= .9 && t.security.level <= t.security.min + 1) {
+                // thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, (t.money.max / Math.max(t.money.available, 1))))
+                if (isFinite(t.money.max / t.money.available)) {
+                    thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, t.money.max / t.money.available))
+                } else {
+                    thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, t.money.max / 1000))
+                }
+            }
+
+            if (t.security.level > t.security.min) {
+                thread_batch.w_threads = Math.ceil((t.security.level - t.security.min) / .05)
+            }
+
+            for (let key in thread_batch) {
+                if (!isFinite(thread_batch[key])) { thread_batch[key] = 10000; }
+                thread_batch[key] = Math.max(0, thread_batch[key])
+            }
+
+            let sum_threads = [
+                thread_batch.h_threads,
+                thread_batch.g_threads,
+                thread_batch.w_threads
+            ].reduce((a, c) => a + c, 0);
+
+            if (sum_threads > 0) {
+                target_batch_req.set(t.id, thread_batch)
+                target_heap.enqueue(t.id, sum_threads)
+            }
+
+        }
+        
+        if (target_heap.size == 0) { return [] }
+
+        attacker_heap.buildHeap(new Map(attackers.filter(a => a.ram.free > smallest_ram).map(a => [a.id, a.ram.free])),[])
+        
+        let next_target = target_heap.dequeue();
+        while (next_target) {
+            if (!target_batch_req.has(next_target.key)) { next_target = target_heap.dequeue(); continue; }
+            
+            let target = next_target.key;
+            let thread_batch = target_batch_req.get(next_target.key);
+            if (!thread_batch) { next_target = target_heap.dequeue(); continue; }
+            
+            let next_attacker = attacker_heap.findMin();
+            
+            while (next_attacker) {
+                let a = next_attacker.key;
+                let ram = next_attacker.val;
+
+                for (const file of files) {
+                    let threads = 0;
+
+                    if (file.job === "weaken" && thread_batch.w_threads > 0) {
+                        threads = Math.floor(Math.min(ram / file.ram, thread_batch.w_threads));
+                        thread_batch.w_threads -= threads;
+                    }
+
+                    if (file.job === "grow" && thread_batch.g_threads > 0) {
+                        threads = Math.floor(Math.min(ram / file.ram, thread_batch.g_threads));
+                        thread_batch.g_threads -= threads;
+                    }
+
+                    if (file.job === "hack" && thread_batch.h_threads > 0) {
+                        threads = Math.floor(Math.min(ram / file.ram, thread_batch.h_threads));
+                        thread_batch.h_threads -= threads;
+                    }
+
+                    if (threads > 0) {
+                        bundles.push({
+                            file: file.filename,
+                            attacker: a,
+                            threads: threads,
+                            args: [target, true]
+                        })
+                        ram -= (threads * file.ram);
+                    }
+                }
+
+                if (ram < smallest_ram) { attacker_heap.deleteKey(a) } else { attacker_heap.decreaseKey(a, ram)}
+                
+                
+                if ([
+                    thread_batch.h_threads,
+                    thread_batch.g_threads,
+                    thread_batch.w_threads
+                ].reduce((a, c) => a + c, 0) > 0) {
+                    next_attacker = attacker_heap.findMin();
+                } else { next_attacker = null; }
+            }
+
+         
+            next_target = target_heap.dequeue();
+        }
+        
+        let next_attacker = attacker_heap.dequeue();
+
+        while (next_attacker) {
+            let a = next_attacker.key;
+            let ram = next_attacker.val;
+
+            let file = files.filter(f => f.job === "weaken")[0]
+            
+            if (ram >= file.ram) {
+                bundles.push({
+                    file: file.filename,
+                    attacker: a,
+                    threads: Math.floor(ram / file.ram),
+                    args: ["n00dles", true]
+                })
+            }
+
+            next_attacker = attacker_heap.dequeue();
+        }
+
+        return bundles;
+
+    }
+
+    __hack_hwgw(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) { // TODO: Optimize algo
+        let bundles: DeploymentBundle[] = [];
+        let required_threads: Map<string, { h_threads: number, g_threads: number, w_threads: number }> = new Map();
+        let files = [
+            {
+                job: "hack",
+                filename: BIN_SCRIPTS[BIN_SCRIPTS.BASIC_HACK],
+                ram: 1.7,
+            },
+            {
+                job: "grow",
+                filename: BIN_SCRIPTS[BIN_SCRIPTS.BASIC_GROW],
+                ram: 1.75,
+            },
+            {
+                job: "weaken",
+                filename: BIN_SCRIPTS[BIN_SCRIPTS.BASIC_WEAK],
+                ram: 1.75,
+            }
+        ]
         for (const t of targets) {
             let thread_batch = {
                 h_threads: 0,
@@ -428,124 +586,11 @@ export default class DaemonDefault {
 
     }
 
-    __hack_hwgw(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) {
-        let bundles: DeploymentBundle[] = [];
-        let required_threads: Map<string, { h_threads: number, g_threads: number, w_threads: number }> = new Map();
-        let files = [
-            {
-                job: "hack",
-                filename: BIN_SCRIPTS[BIN_SCRIPTS.BASIC_HACK],
-                ram: 1.7,
-            },
-            {
-                job: "grow",
-                filename: BIN_SCRIPTS[BIN_SCRIPTS.BASIC_GROW],
-                ram: 1.75,
-            },
-            {
-                job: "weaken",
-                filename: BIN_SCRIPTS[BIN_SCRIPTS.BASIC_WEAK],
-                ram: 1.75,
-            }
-        ]
-        for (const t of targets) {
-            let thread_batch = {
-                h_threads: 0,
-                g_threads: 0,
-                w_threads: 0
-            }
-
-            if (t.money.available / t.money.max > .9 && t.security.level <= t.security.min + 1) {
-                thread_batch.h_threads = Math.ceil(ns.hackAnalyzeThreads(t.id, t.money.available * .05))
-            }
-
-            if (t.money.available / t.money.max <= .9 && t.security.level <= t.security.min + 1) {
-                thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, (t.money.max / Math.max(t.money.available, 1))))
-            }
-
-            if (t.security.level > t.security.min) {
-                thread_batch.w_threads = Math.ceil((t.security.level - t.security.min) / .05)
-            }
-
-            if (
-                thread_batch.h_threads > 0 ||
-                thread_batch.g_threads > 0 ||
-                thread_batch.w_threads > 0
-            ) {
-                required_threads.set(t.id, thread_batch)
-            }
-        }
-
-        let targeted_servers = Array.from(required_threads.entries())
-
-        targeted_servers.sort(([a_id, a_threads], [b_id, b_threads]) => (a_threads.g_threads + a_threads.h_threads + a_threads.w_threads) - (b_threads.g_threads + b_threads.h_threads + b_threads.w_threads));
-
-        for (const [t_id, thread_batch] of targeted_servers) {
-            for (const a of attackers) {
-                let assigned_ram = 0;
-                for (const file of files) {
-                    switch (file.job) {
-                        case "hack":
-                            if (thread_batch.h_threads > 0) {
-                                let threads = Math.min(ServerFuncs.threadCount(a, file.ram), thread_batch.h_threads);
-                                if (threads > 0) {
-                                    bundles.push({
-                                        file: file.filename,
-                                        attacker: a.id,
-                                        threads: threads,
-                                        args: [t_id, true]
-                                    })
-
-                                    assigned_ram += threads * file.ram
-                                }
-
-                            }
-                            break;
-                        case "grow":
-                            if (thread_batch.g_threads > 0) {
-                                let threads = Math.min(ServerFuncs.threadCount(a, file.ram), thread_batch.g_threads);
-                                if (threads > 0) {
-                                    bundles.push({
-                                        file: file.filename,
-                                        attacker: a.id,
-                                        threads: threads,
-                                        args: [t_id, true]
-                                    })
-
-                                    assigned_ram += threads * file.ram
-                                }
-                            }
-                            break;
-                        case "weaken":
-                            if (thread_batch.w_threads > 0) {
-                                let threads = Math.min(ServerFuncs.threadCount(a,file.ram), thread_batch.w_threads);
-                                if (threads > 0) {
-                                    bundles.push({
-                                        file: file.filename,
-                                        attacker: a.id,
-                                        threads: threads,
-                                        args: [t_id, true]
-                                    })
-                                    assigned_ram += threads * file.ram
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
-
-        return bundles;
-
-    }
-
     __hack_max_xp(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) {
         let bundles: DeploymentBundle[] = [];
         let file = { job: "weaken", filename: BIN_SCRIPTS.BASIC_WEAK, ram: 1.75 }
         for (const a of attackers) {
-            let threads = ServerFuncs.threadCount(a,file.ram)
+            let threads = ServerFuncs.threadCount(a, file.ram)
             if (threads > 0) {
                 bundles.push({
                     file: file.filename,
@@ -558,7 +603,7 @@ export default class DaemonDefault {
         return bundles;
     }
 
-    __hack_support_stocks(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) {
+    __hack_support_stocks(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) { // TODO: Optimize algo
         let symbols = new Map([
             ["ecorp", "ECP"],
             ["megacorp", "MGCP"],
@@ -699,7 +744,7 @@ export default class DaemonDefault {
                     switch (file.job) {
                         case "hack":
                             if (thread_batch.h_threads > 0) {
-                                let threads = Math.min(ServerFuncs.threadCount(a,file.ram), thread_batch.h_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a, file.ram), thread_batch.h_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
@@ -714,7 +759,7 @@ export default class DaemonDefault {
                             break;
                         case "grow":
                             if (thread_batch.g_threads > 0) {
-                                let threads = Math.min(ServerFuncs.threadCount(a,file.ram), thread_batch.g_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a, file.ram), thread_batch.g_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
@@ -729,7 +774,7 @@ export default class DaemonDefault {
                             break;
                         case "weaken":
                             if (thread_batch.w_threads > 0) {
-                                let threads = Math.min(ServerFuncs.threadCount(a,file.ram), thread_batch.w_threads);
+                                let threads = Math.min(ServerFuncs.threadCount(a, file.ram), thread_batch.w_threads);
                                 if (threads > 0) {
                                     bundles.push({
                                         file: file.filename,
