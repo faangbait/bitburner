@@ -99,7 +99,7 @@ export default class DaemonDefault {
         return bundles
     }
 
-    __buy_software(ns: NS): DeploymentBundle[] {
+    __buy_software(ns: NS, max_ports = 5): DeploymentBundle[] {
         let player = PlayerInfo.detail(ns);
         let bundles: DeploymentBundle[] = [];
         if (Sing.has_access(ns)) {
@@ -111,7 +111,7 @@ export default class DaemonDefault {
                     3: 3e7,
                     4: 2.5e8
                 };
-                if (player.money > target[player.ports]) {
+                if (player.money > target[player.ports] && player.ports < max_ports) {
                     bundles.push({
                         file: SINGULARITY_SCRIPTS.SOFTWARE_PURCHASE,
                         priority: 0,
@@ -257,8 +257,17 @@ export default class DaemonDefault {
             })
         } else { this.logger.info(`Not attempting to buy server: ${purchased_servers.length} >= ${max_servers}; ${next_upgrade} cost ${purchase_cost(next_upgrade)}; strongest: ${strongest_server.power}`) }
 
+        return bundles
+    }
 
-
+    __upgrade_home(ns: NS, type: "ram" | "core"): DeploymentBundle[] {
+        let bundles: DeploymentBundle[] = [];
+        if (Sing.has_access(ns)) {
+            bundles.push({
+                file: SINGULARITY_SCRIPTS.SOFTWARE_UPGRADEHOME,
+                args: [type]
+            })
+        }
         return bundles
     }
 
@@ -368,7 +377,7 @@ export default class DaemonDefault {
 
         bundles.forEach(b => {
             let target_id = "home";
-            if (b.args) { target_id = b.args[0].toString() }
+            if (b.args && b.args[0]) { target_id = b.args[0].toString() }
 
             let targets_map = targets.get(target_id);
             if (!targets_map) { targets.set(target_id, new Map()); targets_map = targets.get(target_id) as Map<string, number>; }

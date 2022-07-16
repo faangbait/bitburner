@@ -4,6 +4,9 @@ import DaemonDefault from "logic/DaemonDefault";
 import { PlayerObject } from "modules/players/PlayerEnums";
 import { ServerObject } from "modules/servers/ServerEnums";
 
+/**
+ * Runs when owned augs > 1; basically we buy our best aug to start this script
+ */
 export default class DaemonPrepareToReset extends DaemonDefault {
     constructor(ns: NS, servers: ServerObject[], player: PlayerObject) {
         super(ns, servers, player);

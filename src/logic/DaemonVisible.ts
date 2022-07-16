@@ -8,6 +8,10 @@ import { DeploymentBundle, ServerObject } from "modules/servers/ServerEnums";
 import { ServerFuncs } from "modules/servers/ServerFunctions";
 import { ServerInfo } from "modules/servers/Servers";
 
+/**
+ * Runs when world daemon is visible.
+ * Goal: Win game
+ */
 export default class DaemonVisible extends DaemonDefault {
     daemon_difficulty: number;
     daemon: ServerObject;
@@ -17,7 +21,7 @@ export default class DaemonVisible extends DaemonDefault {
         this.daemon = ServerInfo.detail(ns, "w0r1d_d43m0n")
         this.daemon_difficulty = 3000 * this.bn.multipliers.hacking.daemon;
         this.module = "DAEMON_VISIBLE";
-        this.next_bitnode = 5;
+        this.next_bitnode = 1;
 
     }
 
@@ -37,6 +41,13 @@ export default class DaemonVisible extends DaemonDefault {
         return bundles
     }
 
+    find_focus_task(ns: NS, attackers: ServerObject[], player: PlayerObject): DeploymentBundle[] {
+        let bundles: DeploymentBundle[] = [];
+        
+        
+        return bundles;
+    }
+
     generate_action_bundle(ns: NS, attackers: ServerObject[], targets: ServerObject[]): DeploymentBundle[] {
         let bundles: DeploymentBundle[] = [];
         let player = PlayerInfo.detail(ns);
@@ -54,7 +65,8 @@ export default class DaemonVisible extends DaemonDefault {
                     file: SINGULARITY_SCRIPTS.DESTROY_DAEMON,
                     attacker: "home",
                     threads: 1,
-                    args: [this.next_bitnode]
+                    args: [this.next_bitnode],
+                    priority: -99
                 })
             }
         }

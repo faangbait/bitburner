@@ -7,6 +7,10 @@ import { PlayerInfo } from "modules/players/Players";
 import { DeploymentBundle, ServerObject } from "modules/servers/ServerEnums";
 import { Sing } from "modules/Singularity";
 
+/**
+ * Will run until we have > 256 GB of Server RAM
+ * Goal: Increase home RAM > 256 GB
+ */
 export default class DaemonMinimal extends DaemonDefault {
     constructor(ns: NS, servers: ServerObject[], player: PlayerObject) {
         super(ns, servers, player);
@@ -36,14 +40,14 @@ export default class DaemonMinimal extends DaemonDefault {
     generate_action_bundle(ns: NS, attackers: ServerObject[], targets: ServerObject[]): DeploymentBundle[] {
         let player = PlayerInfo.detail(ns);
         let bundles: DeploymentBundle[] = [];
-        bundles.push(...this.__buy_software(ns))
+        bundles.push(...this.__buy_software(ns, 1))
 
         if (bundles.length == 0 ) {
-            if (player.money > 2e6) { bundles.push(...this.__hacknet(ns)) }
+            if (player.money > 1e8) { bundles.push(...this.__upgrade_home(ns, "ram")) }
             if (player.money > 3e7) { bundles.push(...this.__market(ns)) }
+            if (player.money > 2e6) { bundles.push(...this.__hacknet(ns)) }
         }
 
-        bundles.push(...this.find_focus_task(ns, attackers, player));
         bundles.push(...this.select_hack_algorithm(ns,attackers,targets, player));
         return bundles
     }

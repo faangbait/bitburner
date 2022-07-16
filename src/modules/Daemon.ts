@@ -4,8 +4,7 @@
 import { NS } from "Bitburner";
 import { TermLogger } from "lib/Logger";
 import DaemonDefault from "logic/DaemonDefault";
-import DaemonEndgameFactions from "logic/DaemonEndgameFactions";
-import DaemonGetAugs from "logic/DaemonGetAugs";
+import DaemonJoinDaedalus from "logic/DaemonJoinDaedalus";
 import DaemonPrepareToReset from "logic/DaemonPrepareToReset";
 import DaemonRedPill from "logic/DaemonRedPill";
 import DaemonVisible from "logic/DaemonVisible";
@@ -17,6 +16,9 @@ import { AugCache } from "modules/augmentations/AugmentationCache";
 import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
 import { ServerFuncs } from "modules/servers/ServerFunctions";
 import DaemonMinimal from "logic/DaemonMinimal";
+import DaemonFresh from "logic/DaemonFresh";
+import DaemonMeetDaedalus from "logic/DaemonMeetDaedalus";
+import { FactionCache } from "./factions/FactionCache";
 
 export const DaemonStrategy = {
     async init(ns: NS) {
@@ -37,57 +39,39 @@ export const DaemonStrategy = {
 }
 
 /**
- * Strategy order is roughly:
- * - Daemon Default             -> Develop a solid base
- * - Daemon GetAugs             -> Optimally pursue augmentations
- * - Daemon PrepareToReset      -> Close up shop, maximize reset potential
- * - Daemon GetAugs
- * - Daemon PrepareToReset
- * - Daemon GetAugs
- * - Daemon PrepareToReset
- * - Daemon Endgame Factions    -> Gathering our final augmentations before targeting Daedalus
+ * Milestone order is roughly:
+ * - Daemon Minimal             -> Develop a solid base from minimal resources
+ * - Daemon Fresh               -> Develop a solid base from some resources (post-Reset)
+ * - Daemon Default             -> Achieve long-term stability of resources
+ * - Daemon PrepareToReset      -> Maximize potential of upcoming reset
+ * - Daemon MeetDaedalus        -> We are under the number of required augmentations to join Daedalus
+ * - Daemon JoinDaedalus        -> We meet the number of required augmentations to join Daedalus
  * - Daemon RedPill             -> We have Daedalus membership and can rush the Red Pill
- * - Daemon Visible             -> We have taken the red pill and have only to backdoor Daemon
+ * - Daemon Visible             -> We have taken the red pill and our only remaining goal is to backdoor the world daemon
  */
 class GameStrategy { // TODO: Adjust this
     static select_algorithm(ns: NS, servers: ServerObject[], player: PlayerObject) {
         let logger = new TermLogger(ns);
-        if (servers.filter(s => s.id === "w0r1d_d43m0n").length > 0) {
-            return new DaemonVisible(ns, servers, player);
+        if (servers.reduce((a,c) => a + c.power ,0) < 8) {
+            return new DaemonMinimal(ns, servers, player);
         }
-
-        if (player.faction.membership.includes("Daedalus")) {
-            return new DaemonRedPill(ns, servers, player);
-        }
-
+        
         let augments = AugCache.all(ns);
-        let augs_installed = Array.from(augments.values()).filter(a => a.installed)
-        let augs_owned = Array.from(augments.values()).filter(a => a.owned)
-        let bn = BitNodeCache.read(ns, 'current');
+        let augs_owned = Array.from(augments.values()).filter(a => a.owned).length;
+        let augs_installed = Array.from(augments.values()).filter(a => a.installed).length;
 
-        let daedalus_augs = bn.multipliers.augmentations.daedalus_req;
-
-        if (augs_installed.length >= daedalus_augs) {
-            return new DaemonEndgameFactions(ns, servers, player);
-        }
-
-        if (augs_owned.length >= daedalus_augs) {
-            return new DaemonPrepareToReset(ns, servers, player);
-        }
-
-        if (augs_owned.length - augs_installed.length > 5) {
-            return new DaemonPrepareToReset(ns, servers, player);
-        }
-
-        if (player.ports >= 5) { return new DaemonGetAugs(ns, servers, player); }
-
-        let home = servers.find(s => s.isHome)
-        if (home && home.ram.trueMax < Math.pow(2,8)) {
-            return new DaemonMinimal(ns, servers, player)
-        }
+        if (augs_owned > augs_installed) { return new DaemonPrepareToReset(ns, servers, player); }
+        
+        if (player.ports < 3) { return new DaemonFresh(ns, servers, player) }
+        
+        if (servers.filter(s => s.id === "w0r1d_d43m0n").length > 0) { return new DaemonVisible(ns, servers, player); }
+        if (player.faction.membership.includes("Daedalus")) { return new DaemonRedPill(ns, servers, player); }
+        
+        let daedalus_reqs = BitNodeCache.read(ns, 'current').multipliers.augmentations.daedalus_req
+        if (player.hacking.level > 1000 && augs_installed >= daedalus_reqs ) { return new DaemonJoinDaedalus(ns, servers, player) }
+        if (player.hacking.level > 2000 && player.market.api.fourSigma && augs_installed > 10) { return new DaemonMeetDaedalus(ns, servers, player); }
 
         return new DaemonDefault(ns, servers, player);
-
     }
 
     static async execute_strategy(ns: NS, servers: ServerObject[], player: PlayerObject) {
