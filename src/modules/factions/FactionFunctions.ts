@@ -20,7 +20,8 @@ const backdoor_faction_servers = async (ns: NS) => {
         s.level <= player.hacking.level && 
         s.ports.required <= 
         player.ports)) {
-            await ReservedRam.use(ns, SINGULARITY_SCRIPTS.CONNECT_SERVER,1, [true])
+            await ReservedRam.use(ns, SINGULARITY_SCRIPTS.CONNECT_SERVER, 1, [server.id, true])
         }
-    
 }
+
+

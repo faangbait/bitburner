@@ -158,7 +158,7 @@ class Bitnode {
  */
 export const BitnodeInfo = {
     all(ns: NS): Bitnode[] {
-        return ns.getOwnedSourceFiles().map(sf => new Bitnode(ns, sf.n, sf.lvl))
+        return [...ns.getOwnedSourceFiles().map(sf => new Bitnode(ns, sf.n, sf.lvl)), BitnodeInfo.current(ns)]
     },
 
     detail(ns: NS, n: number) {
