@@ -1,5 +1,7 @@
 import { NodeStats, NS } from "Bitburner";
 import { check_control_sequence, CONTROL_SEQUENCES, PORTS } from "lib/Database";
+import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
+import { PlayerCache } from "modules/players/PlayerCache";
 
 export const main = async (ns: NS) => {
     ns.disableLog("ALL");
@@ -7,8 +9,8 @@ export const main = async (ns: NS) => {
     const BREAKEVEN_TIME = 120 * 60; // in seconds
     const SLEEP_TIME = 2 * 1000;
     const BUDGET_PERCENTAGE = 0.5;
-    const PROD_MULT = ns.getPlayer().hacknet_node_money_mult;
-    const BN_PROD_MULT = 1;
+    const PROD_MULT = PlayerCache.read(ns, "player").hnet.multipliers.production || 1;
+    const BN_PROD_MULT = BitNodeCache.read(ns, "current").multipliers.hacknet.production || 1;
     const MAX_NODES = 14;
     
     while(ns.hacknet.numNodes() === 0) { ns.hacknet.purchaseNode(); await ns.sleep(5); }
