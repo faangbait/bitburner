@@ -39,39 +39,39 @@ export const main = async (ns: NS) => {
 
     let nodes: Map<number, NodeStats> = get_nodes();
 
-    while (nodes.size < 8 || Array.from(nodes.values()).reduce((acc, cur) => acc + cur.level, 0) < 100) {
-        await check_control_sequence(ns);
+    // while (nodes.size < 8 || Array.from(nodes.values()).reduce((acc, cur) => acc + cur.level, 0) < 100) {
+    //     await check_control_sequence(ns);
 
-        while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.LIQUIDATE_CAPITAL) {
-            await ns.sleep(10);
-        }
+    //     while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.LIQUIDATE_CAPITAL) {
+    //         ns.exit();
+    //     }
 
-        ns.clearLog();
-        ns.print("Node\tLevel\tRAM\tCores\tProd/s")
+    //     ns.clearLog();
+    //     ns.print("Node\tLevel\tRAM\tCores\tProd/s")
 
-        if (nodes.size > 0) {
-            let cheapest_node = {
-                idx: 0,
-                stats: nodes.get(0) as NodeStats
-            };
+    //     if (nodes.size > 0) {
+    //         let cheapest_node = {
+    //             idx: 0,
+    //             stats: nodes.get(0) as NodeStats
+    //         };
 
-            for (const [i, node] of nodes.entries()) {
-                ns.print(`Node ${i}\t${node.level}\t${node.ram}\t${node.cores}\t${ns.nFormat(node.production, '0.0a')}`)
-                if (node.level < cheapest_node.stats.level) {
-                    cheapest_node = {
-                        idx: i,
-                        stats: node
-                    }
-                }
-            }
+    //         for (const [i, node] of nodes.entries()) {
+    //             ns.print(`Node ${i}\t${node.level}\t${node.ram}\t${node.cores}\t${ns.nFormat(node.production, '0.0a')}`)
+    //             if (node.level < cheapest_node.stats.level) {
+    //                 cheapest_node = {
+    //                     idx: i,
+    //                     stats: node
+    //                 }
+    //             }
+    //         }
 
-            if (get_money() >= ns.hacknet.getLevelUpgradeCost(cheapest_node.idx, 1)) { ns.hacknet.upgradeLevel(cheapest_node.idx, 1) }
-            if (get_money() >= ns.hacknet.getPurchaseNodeCost()) { ns.hacknet.purchaseNode(); }
-        }
+    //         if (get_money() >= ns.hacknet.getLevelUpgradeCost(cheapest_node.idx, 1)) { ns.hacknet.upgradeLevel(cheapest_node.idx, 1) }
+    //         if (get_money() >= ns.hacknet.getPurchaseNodeCost()) { ns.hacknet.purchaseNode(); }
+    //     }
 
-        await ns.sleep(5);
-        nodes = get_nodes();
-    }
+    //     await ns.sleep(5);
+    //     nodes = get_nodes();
+    // }
 
     // continue buying until past breakeven point
 
@@ -79,7 +79,7 @@ export const main = async (ns: NS) => {
         await check_control_sequence(ns);
         
         while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.LIQUIDATE_CAPITAL) {
-            await ns.sleep(10);
+            ns.exit()
         }
 
         ns.clearLog();
@@ -131,6 +131,7 @@ export const main = async (ns: NS) => {
                 // try to buy a new node
                 while (ns.hacknet.getPurchaseNodeCost() > get_money()) {
                     await ns.sleep(SLEEP_TIME)
+                    // ns.exit()
                 }
                 ns.hacknet.purchaseNode();
             }
@@ -139,6 +140,7 @@ export const main = async (ns: NS) => {
             if (isFinite(cost) && cost) {
                 while (get_money() < cost) {
                     await ns.sleep(SLEEP_TIME);
+                    // ns.exit()
                 }
 
                 switch (upgrade) {
