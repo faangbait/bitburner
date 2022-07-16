@@ -10,6 +10,7 @@ import { DeploymentBundle, ServerObject } from "modules/servers/ServerEnums";
 import { ServerInfo } from "modules/servers/Servers";
 import { ServerFuncs } from "modules/servers/ServerFunctions";
 import MinHeap from "structures/heaps/minHeap";
+import { Sing } from "modules/Singularity";
 
 export default class DaemonDefault {
     bn: import("/home/ss/dev/bitburner/src/modules/bitnodes/BitnodeEnums").Bitnode;
@@ -61,42 +62,17 @@ export default class DaemonDefault {
         return bundles
     }
 
-    __buy_ports(ns: NS): DeploymentBundle[] {
-        let player = PlayerInfo.detail(ns);
-        let bundles: DeploymentBundle[] = [];
-        if (player.ports < 5) {
-            let target = {
-                0: 7e5,
-                1: 1.5e6,
-                2: 5e6,
-                3: 3e7,
-                4: 2.5e8
-            };
-            if (player.money > target[player.ports]) {
-                bundles.push({
-                    file: SINGULARITY_SCRIPTS.MANAGE_SOFTWARE,
-                    attacker: "home",
-                    threads: 1,
-                    args: [],
-                    priority: 0,
-                });
-            }
-        }
-        return bundles
-    }
-
     __hacknet(ns: NS): DeploymentBundle[] {
         let bundles: DeploymentBundle[] = [];
         let player = PlayerInfo.detail(ns);
-        bundles.push(
-            {
-                file: SYS_SCRIPTS.HACKNET,
-                attacker: "home",
-                threads: 1,
-                args: [],
-                priority: 9
-            }
-        )
+        if (ns.ps("home").filter(proc => proc.filename == SYS_SCRIPTS.HACKNET).length === 0) {
+            bundles.push(
+                {
+                    file: SYS_SCRIPTS.HACKNET,
+                    priority: 9
+                }
+            )
+        }
         return bundles
     }
 
@@ -108,8 +84,6 @@ export default class DaemonDefault {
             case CONTROL_SEQUENCES.LIQUIDATE_CAPITAL:
                 bundles.push({
                     file: SYS_SCRIPTS.MARKET,
-                    attacker: "home",
-                    threads: 1,
                     args: ["-l"],
                     priority: -99
                 })
@@ -117,8 +91,6 @@ export default class DaemonDefault {
             default:
                 bundles.push({
                     file: SYS_SCRIPTS.MARKET,
-                    attacker: "home",
-                    threads: 1,
                     args: [],
                     priority: 0
                 })
@@ -127,9 +99,128 @@ export default class DaemonDefault {
         return bundles
     }
 
+    __buy_software(ns: NS): DeploymentBundle[] {
+        let player = PlayerInfo.detail(ns);
+        let bundles: DeploymentBundle[] = [];
+        if (Sing.has_access(ns)) {
+            if (player.ports < 5) {
+                let target = {
+                    0: 7e5,
+                    1: 1.5e6,
+                    2: 5e6,
+                    3: 3e7,
+                    4: 2.5e8
+                };
+                if (player.money > target[player.ports]) {
+                    bundles.push({
+                        file: SINGULARITY_SCRIPTS.SOFTWARE_PURCHASE,
+                        priority: 0,
+                    });
+                }
+            }
+        }
+        return bundles
+    }
+
+
+    __start_faction_work(ns: NS, faction_name: string, type: "Hacking" | "Field" | "Security", force = false): DeploymentBundle[] {
+        let bundles: DeploymentBundle[] = [];
+        let player = PlayerInfo.detail(ns);
+
+        if (Sing.has_access(ns) && (!player.work.isWorking || force)) {
+            if (!player.faction.membership.includes(faction_name)) {
+                bundles.push({
+                    file: SINGULARITY_SCRIPTS.FACTION_JOIN,
+                    args: [faction_name]
+                })
+            }
+
+            bundles.push({
+                file: SINGULARITY_SCRIPTS.FACTION_WORK,
+                args: [faction_name, type, force]
+            })
+        }
+        return []
+    }
+
+    __start_company_work(ns: NS, company_name: string, position: string, force = false): DeploymentBundle[] {
+        let bundles: DeploymentBundle[] = [];
+        let player = PlayerInfo.detail(ns);
+
+        if (Sing.has_access(ns) && (!player.work.isWorking || force)) {
+            if (player.company.companyName !== company_name) {
+                bundles.push({
+                    file: SINGULARITY_SCRIPTS.COMPANY_APPLY,
+                    args: [company_name, position]
+                })
+            }
+
+            bundles.push({
+                file: SINGULARITY_SCRIPTS.COMPANY_WORK,
+                args: [company_name, true]
+
+            })
+        }
+        return bundles
+    }
+
+    __start_crime(ns: NS, crime_name:
+        "shoplift" |
+        "rob store" |
+        "mug someone" |
+        "larceny" |
+        "deal drugs" |
+        "bond forgery" |
+        "traffick illegal arms" |
+        "homicide" |
+        "grand theft auto" |
+        "kidnap and ransom" |
+        "assasinate" |
+        "heist", force = false): DeploymentBundle[] {
+        let bundles: DeploymentBundle[] = [];
+        let player = PlayerInfo.detail(ns);
+
+        if (Sing.has_access(ns) && (!player.work.isWorking || force)) {
+            bundles.push({
+                file: SINGULARITY_SCRIPTS.CRIMES_COMMIT,
+                args: [crime_name]
+            })
+        }
+
+        return bundles
+    }
+
+    __start_software(ns: NS, software_name:
+        "b1t_flum3.exe" |
+        "AutoLink.exe" |
+        "DeepscanV1.exe" |
+        "DeepscanV2.exe" |
+        "ServerProfiler.exe" |
+        "Formulas.exe" |
+        "NUKE.exe" |
+        "BruteSSH.exe" |
+        "FTPCrack.exe" |
+        "relaySMTP.exe" |
+        "HTTPWorm.exe" |
+        "SQLInject.exe", force = false
+    ): DeploymentBundle[] {
+        let bundles: DeploymentBundle[] = [];
+        let player = PlayerInfo.detail(ns);
+
+        if (Sing.has_access(ns) && (!player.work.isWorking || force)) {
+            bundles.push({
+                file: SINGULARITY_SCRIPTS.SOFTWARE_WRITE,
+                args: [software_name]
+            })
+        }
+        return bundles
+    }
+
     __purchase_servers(ns: NS, attackers: ServerObject[], max_servers = 25, min_size = 6): DeploymentBundle[] {
         let bundles: DeploymentBundle[] = [];
         let player = PlayerInfo.detail(ns);
+
+        // TODO: Bitnode multipliers
 
         const ram = (power: number) => { return Math.pow(2, power) }
         const purchase_cost = (power: number) => { return ram(power) * 55000 }
@@ -153,8 +244,6 @@ export default class DaemonDefault {
         if (purchased_servers.length === max_servers && can_afford_server(next_upgrade) && weakest_server.power < 18) {
             bundles.push({
                 file: SYS_SCRIPTS.PURCHASE_SVR,
-                attacker: "home",
-                threads: 1,
                 args: ["sell", weakest_server.hostname]
             })
             purchased_servers.pop() // doesn't matter what we pop, we're about to buy a replacement
@@ -164,8 +253,6 @@ export default class DaemonDefault {
         if (purchased_servers.length < max_servers && can_afford_server(next_upgrade)) {
             bundles.push({
                 file: SYS_SCRIPTS.PURCHASE_SVR,
-                attacker: "home",
-                threads: 1,
                 args: ["buy", "cluster-", ram(next_upgrade)]
             })
         } else { this.logger.info(`Not attempting to buy server: ${purchased_servers.length} >= ${max_servers}; ${next_upgrade} cost ${purchase_cost(next_upgrade)}; strongest: ${strongest_server.power}`) }
@@ -175,26 +262,78 @@ export default class DaemonDefault {
         return bundles
     }
 
-    __find_job(ns: NS): DeploymentBundle[] {
+    /**
+     * Logic to select the best focus task, one of:
+     * Work for Faction
+     * Work for Company
+     * Crimes
+     * Create Software
+     */
+    find_focus_task(ns: NS, attackers: ServerObject[], player: PlayerObject): DeploymentBundle[] {
         let bundles: DeploymentBundle[] = [];
-        let player = PlayerInfo.detail(ns);
 
-        if (!player.work.isWorking) {
-            // TODO
+        if (false) {
+            let company_name = "";
+            let position = "";
+            return this.__start_company_work(ns, company_name, position, true)
+        }
+
+        if (false) {
+            let faction_name = "";
+            let type: "Hacking" | "Field" | "Security" = "Hacking";
+            return this.__start_faction_work(ns, faction_name, type, true);
+        }
+
+        if (false) {
+            let crime_name:
+                "shoplift" |
+                "rob store" |
+                "mug someone" |
+                "larceny" |
+                "deal drugs" |
+                "bond forgery" |
+                "traffick illegal arms" |
+                "homicide" |
+                "grand theft auto" |
+                "kidnap and ransom" |
+                "assasinate" |
+                "heist" = "shoplift"
+
+            return this.__start_crime(ns, crime_name)
+        }
+
+        if (false) {
+            let software_name:
+                "b1t_flum3.exe" |
+                "AutoLink.exe" |
+                "DeepscanV1.exe" |
+                "DeepscanV2.exe" |
+                "ServerProfiler.exe" |
+                "Formulas.exe" |
+                "NUKE.exe" |
+                "BruteSSH.exe" |
+                "FTPCrack.exe" |
+                "relaySMTP.exe" |
+                "HTTPWorm.exe" |
+                "SQLInject.exe" = "NUKE.exe"
+
+            return this.__start_software(ns, software_name)
         }
 
         return bundles
     }
 
-
+    /**
+     * Main entrypoint for logic
+     */
     generate_action_bundle(ns: NS, attackers: ServerObject[], targets: ServerObject[]): DeploymentBundle[] {
         let bundles: DeploymentBundle[] = [];
         let player = PlayerInfo.detail(ns);
 
-        bundles.push(...this.__buy_ports(ns));
+        if (player.ports < 5) { bundles.push(...this.__buy_software(ns)); }
         if (player.level < 10 && ![8].includes(this.bn.number)) { bundles.push(...this.__hacknet(ns)) }
 
-        if (player.market.api.tix) { bundles.push(...this.__market(ns)) }
+        if (player.market.api.tix && attackers.reduce((a, c) => a + c.ram.trueMax, 0) > Math.pow(2, 14)) { bundles.push(...this.__market(ns)) }
 
         if (player.ports >= 5 && ![8].includes(this.bn.number)) {
             bundles.push(...this.__purchase_servers(ns, attackers))
@@ -208,7 +347,7 @@ export default class DaemonDefault {
     }
 
     deploy_package(ns: NS, bundle: DeploymentBundle): number {
-        return ns.exec(bundle.file, bundle.attacker, bundle.threads, ...bundle.args)
+        return ns.exec(bundle.file, bundle.attacker||"home", bundle.threads, ...bundle.args || [])
     }
 
     iterate(
@@ -228,8 +367,8 @@ export default class DaemonDefault {
         let targets: Map<string, Map<string, number>> = new Map();
 
         bundles.forEach(b => {
-            let target_id = "None";
-            if (b.args[0]) { target_id = b.args[0].toString() }
+            let target_id = "home";
+            if (b.args) { target_id = b.args[0].toString() }
 
             let targets_map = targets.get(target_id);
             if (!targets_map) { targets.set(target_id, new Map()); targets_map = targets.get(target_id) as Map<string, number>; }
@@ -237,7 +376,7 @@ export default class DaemonDefault {
             let threads = targets_map.get(b.file);
             if (!threads) { targets_map.set(b.file, 0); threads = 0; }
 
-            targets_map.set(b.file, threads + b.threads)
+            targets_map.set(b.file, threads + (b.threads || 1))
 
         })
 
@@ -258,7 +397,6 @@ export default class DaemonDefault {
     /**
      * Core methods, no overrides below
      */
-
 
     async __send_control_sequences(ns: NS, servers: ServerObject[], player: PlayerObject) {
         let cs = this.active_control_sequence(ns, servers, player);
@@ -283,8 +421,8 @@ export default class DaemonDefault {
         return servers.map(s => this.prepare_target(ns, s));
     }
 
-    __package(ns: NS, attackers: ServerObject[], targets: ServerObject[]): DeploymentBundle[] {
-        return this.generate_action_bundle(ns, attackers, targets)
+    __package(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject): DeploymentBundle[] {
+        return [...this.find_focus_task(ns, attackers, player),...this.generate_action_bundle(ns, attackers, targets)]
     }
 
     __deploy(ns: NS, bundles: DeploymentBundle[]): number[] {
@@ -356,7 +494,6 @@ export default class DaemonDefault {
             }
 
             if (t.money.available / t.money.max <= .9 && t.security.level <= t.security.min + 1) {
-                // thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, (t.money.max / Math.max(t.money.available, 1))))
                 if (isFinite(t.money.max / t.money.available)) {
                     thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, t.money.max / t.money.available))
                 } else {
@@ -385,21 +522,21 @@ export default class DaemonDefault {
             }
 
         }
-        
+
         if (target_heap.size == 0) { return [] }
 
-        attacker_heap.buildHeap(new Map(attackers.filter(a => a.ram.free > smallest_ram).map(a => [a.id, a.ram.free])),[])
-        
+        attacker_heap.buildHeap(new Map(attackers.filter(a => a.ram.free > smallest_ram).map(a => [a.id, a.ram.free])), [])
+
         let next_target = target_heap.dequeue();
         while (next_target) {
             if (!target_batch_req.has(next_target.key)) { next_target = target_heap.dequeue(); continue; }
-            
+
             let target = next_target.key;
             let thread_batch = target_batch_req.get(next_target.key);
             if (!thread_batch) { next_target = target_heap.dequeue(); continue; }
-            
+
             let next_attacker = attacker_heap.findMin();
-            
+
             while (next_attacker) {
                 let a = next_attacker.key;
                 let ram = next_attacker.val;
@@ -433,9 +570,9 @@ export default class DaemonDefault {
                     }
                 }
 
-                if (ram < smallest_ram) { attacker_heap.deleteKey(a) } else { attacker_heap.decreaseKey(a, ram)}
-                
-                
+                if (ram < smallest_ram) { attacker_heap.deleteKey(a) } else { attacker_heap.decreaseKey(a, ram) }
+
+
                 if ([
                     thread_batch.h_threads,
                     thread_batch.g_threads,
@@ -445,10 +582,10 @@ export default class DaemonDefault {
                 } else { next_attacker = null; }
             }
 
-         
+
             next_target = target_heap.dequeue();
         }
-        
+
         let next_attacker = attacker_heap.dequeue();
 
         while (next_attacker) {
@@ -456,7 +593,7 @@ export default class DaemonDefault {
             let ram = next_attacker.val;
 
             let file = files.filter(f => f.job === "weaken")[0]
-            
+
             if (ram >= file.ram) {
                 bundles.push({
                     file: file.filename,

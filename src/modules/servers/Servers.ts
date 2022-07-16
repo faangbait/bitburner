@@ -41,10 +41,13 @@ class Server {
         this.connected = data.isConnectedTo;
         this.backdoored = data.backdoorInstalled;
         this.cores = data.cpuCores;
+
+        let reserved = Math.min(data.maxRam * 0.125, RESERVED_HOME_RAM);
+
         this.ram = {
             used: data.ramUsed,
-            max: data.maxRam - (data.hostname === "home" ? RESERVED_HOME_RAM : 0),
-            free: Math.max(0, data.maxRam - data.ramUsed - (data.hostname === "home" ? RESERVED_HOME_RAM : 0)),
+            max: data.maxRam - (data.hostname === "home" ? reserved : 0),
+            free: Math.max(0, data.maxRam - data.ramUsed - (data.hostname === "home" ? reserved : 0)),
             trueMax: data.maxRam
         };
 

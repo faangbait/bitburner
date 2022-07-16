@@ -57,9 +57,9 @@ export interface Process {
 
 export interface DeploymentBundle {
     file: string,
-    attacker: string,
-    threads: number,
-    args: (string | number | boolean)[]
+    attacker?: string,
+    threads?: number,
+    args?: (string | number | boolean)[]
     priority?: number
 }
 

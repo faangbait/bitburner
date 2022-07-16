@@ -16,9 +16,12 @@ import { PlayerObject } from "modules/players/PlayerEnums";
 import { AugCache } from "modules/augmentations/AugmentationCache";
 import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
 import { ServerFuncs } from "modules/servers/ServerFunctions";
+import DaemonMinimal from "logic/DaemonMinimal";
 
 export const DaemonStrategy = {
-    async init(ns: NS) {},
+    async init(ns: NS) {
+        await ServerFuncs.scp_binaries(ns);
+    },
 
     async loop(ns: NS) {
         const logger = new TermLogger(ns);
@@ -49,7 +52,7 @@ export const DaemonStrategy = {
 class GameStrategy { // TODO: Adjust this
     static select_algorithm(ns: NS, servers: ServerObject[], player: PlayerObject) {
         let logger = new TermLogger(ns);
-        if (servers.filter(s => s.id === "w0r1d_d43m0n")) {
+        if (servers.filter(s => s.id === "w0r1d_d43m0n").length > 0) {
             return new DaemonVisible(ns, servers, player);
         }
 
@@ -77,6 +80,11 @@ class GameStrategy { // TODO: Adjust this
         }
 
         if (player.ports >= 5) { return new DaemonGetAugs(ns, servers, player); }
+
+        let home = servers.find(s => s.isHome)
+        if (home && home.ram.trueMax < Math.pow(2,8)) {
+            return new DaemonMinimal(ns, servers, player)
+        }
 
         return new DaemonDefault(ns, servers, player);
 
@@ -111,7 +119,7 @@ class GameStrategy { // TODO: Adjust this
 
         results.prepared_attackers = gs.__prepare_attackers(ns, results.legal_attackers);
         results.prepared_targets = gs.__prepare_targets(ns, results.legal_targets);
-        results.bundles = gs.__package(ns, results.prepared_attackers, results.prepared_targets);
+        results.bundles = gs.__package(ns, results.prepared_attackers, results.prepared_targets, player);
         results.pids = gs.__deploy(ns, results.bundles)
 
         gs.__iterate(ns, results);

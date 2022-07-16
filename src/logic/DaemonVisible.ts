@@ -41,7 +41,7 @@ export default class DaemonVisible extends DaemonDefault {
         let bundles: DeploymentBundle[] = [];
         let player = PlayerInfo.detail(ns);
         
-        bundles.push(...this.__buy_ports(ns));
+        bundles.push(...this.__buy_software(ns));
 
         if (this.daemon.level <= player.hacking.level) {
             if (!this.daemon.admin) {

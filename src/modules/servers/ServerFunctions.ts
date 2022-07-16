@@ -19,10 +19,17 @@ export const ServerFuncs = {
                     ns.sqlinject(s.id);
                 } catch {}
                 finally {
-                    ns.nuke(s.id)
+                    try { ns.nuke(s.id) } catch {}
                 }
             }
         })
+    },
+
+    async scp_binaries(ns: NS) {
+        for (const server of ServerInfo.all(ns)){
+            await ns.scp(ns.ls("home","/bin/"), server.id)
+            await ns.scp(ns.ls("home","/lib/"), server.id)
+        }
     },
 
     threadCount(server: ServerObject, scriptRam: number, strictMode = false) {

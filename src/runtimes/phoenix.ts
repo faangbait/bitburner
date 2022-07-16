@@ -6,6 +6,7 @@ import { CORE_RUNTIMES, SYS_SCRIPTS, } from "lib/Variables";
 import { CACHE_SCRIPTS } from "lib/Database";
 import { ReservedRam } from "lib/Swap";
 import { DaemonStrategy } from "modules/Daemon";
+import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
 
 export const main = async (ns: NS) => {
     ns.disableLog("ALL");
@@ -15,6 +16,7 @@ export const main = async (ns: NS) => {
 
     let start_time = performance.now();
     await init(ns);
+    await DaemonStrategy.init(ns);
     
     logger.log(`Initialization completed in ${ns.nFormat(performance.now() - start_time, '0.0a')} milliseconds`)
 
@@ -36,6 +38,7 @@ export const main = async (ns: NS) => {
 }
 
 const init = async (ns: NS) =>{
+    ns.print("BitNode: ", BitNodeCache.read(ns, "current").number);
     let servers = ServerInfo.all(ns);
 
     servers.filter(s => s.id !== "home")
