@@ -1,12 +1,13 @@
 import { NS } from "Bitburner";
 import { FactionInfo } from "modules/factions/Factions";
 import { FactionCache } from "modules/factions/FactionCache";
+import { Sing } from "modules/Singularity";
 
 export const main = async (ns: NS) => {
-    const factions = FactionInfo.all(ns);
-    for (const fact of factions.values()) {
-        fact.invited = ns.singularity.checkFactionInvitations().includes(fact.name);
-        fact.augmentations = ns.singularity.getAugmentationsFromFaction(fact.name);
-        await FactionCache.update(ns, fact)
+    if (!Sing.has_access(ns)) { return }
+    for (const faction of FactionInfo.all(ns)) {
+        faction.invited = ns.singularity.checkFactionInvitations().includes(faction.name);
+        faction.augmentations = ns.singularity.getAugmentationsFromFaction(faction.name);
+        await FactionCache.update(ns, faction);
     }
 }

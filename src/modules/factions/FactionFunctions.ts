@@ -13,7 +13,7 @@ import { Faction } from "modules/factions/FactionEnums";
 import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
 
 export const FactionFuncs = {
-    
+
     async singularity_backdoor(ns: NS) {
         let player = PlayerInfo.detail(ns);
         let backdoors = Array.from(FactionCache.all(ns).values()).map(f => f.backdoor_req)
@@ -39,6 +39,13 @@ export const FactionFuncs = {
 
     min_donation_favor(ns: NS) {
         return 150 * BitNodeCache.read(ns, "current").multipliers.faction.min_favor
+    },
+
+    async join_unblocked_factions(ns: NS) {
+        let factions = Array.from(FactionCache.all(ns).values());
+        for (const faction of factions.filter(f => f.enemies.length === 0)) {
+            await ReservedRam.use(ns, SINGULARITY_SCRIPTS.FACTION_JOIN, 1, [faction.name])
+        }
     }
 
 }

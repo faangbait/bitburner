@@ -363,12 +363,15 @@ class Faction {
  * Returns a list of Faction objects
  */
 export const FactionInfo = {
-    all(ns: NS): typeof Factions {
+    all(ns: NS): Faction[] {
+
+        let factions: Faction[] = [];
         for (const fname in FactionNames) {
-            Factions[fname] = new Faction(ns, fname)
+            factions.push(new Faction(ns, FactionNames[fname]))
         }
-        return Factions;
+        return factions
     },
+
     detail(ns: NS, fname: string): Faction {
         return new Faction(ns, fname)
     }

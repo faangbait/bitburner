@@ -1,24 +1,18 @@
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
+import { Sing } from "modules/Singularity";
 
 export async function main(ns: NS) {
-    let logger = new TermLogger(ns);
+    if (!Sing.has_access(ns)) { return }
+    
+    ns.singularity.purchaseTor();
 
     for (const file in [
-        "BruteSSH.exe",
-        "FTPCrack.exe",
-        "relaySMTP.exe",
-        "HTTPWorm.exe",
-        "SQLInject.exe"
+        "brutessh.exe",
+        "ftpcrack.exe",
+        "relaysmtp.exe",
+        "httpworm.exe",
+        "sqlinject.exe"
     ]) {
-        if (!ns.fileExists(file)) {
-            try {
-                ns.singularity.purchaseTor();
-                ns.singularity.purchaseProgram(file);
-            } catch {
-                logger.err(`REQUIRED SOFTWARE PURCHASE: ${file}`)
-                return
-            }
-        }
+        ns.singularity.purchaseProgram(file);
     }
 }

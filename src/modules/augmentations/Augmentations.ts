@@ -91,12 +91,12 @@ class Augmentation {
  * Returns a list of Augmentation objects
  */
 export const AugmentationInfo = {
-    all(ns: NS): typeof Augmentations {
-        for (const aug_name in AugmentationNames) {
-            Augmentations[aug_name] = AugmentationInfo.detail(ns, aug_name);
+    all(ns: NS): Augmentation[] {
+        let augmentations: Augmentation[] = [];
+        for (const aug in AugmentationNames) {
+            augmentations.push(new Augmentation(ns, AugmentationNames[aug]))
         }
-    
-        return Augmentations;
+        return augmentations
     },
 
     detail(ns: NS, aug_name: string) {

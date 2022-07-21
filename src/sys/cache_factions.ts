@@ -3,8 +3,7 @@ import { FactionInfo } from "modules/factions/Factions";
 import { FactionCache } from "modules/factions/FactionCache";
 
 export const main = async (ns: NS) => {
-    const factions = FactionInfo.all(ns);
-    for (const fact of factions.values()) {
+    for (const fact of FactionInfo.all(ns)) {
         await FactionCache.update(ns, fact)
     }
 }

@@ -7,8 +7,7 @@ import { Sing } from "modules/Singularity";
 export const main = async (ns: NS) => {
     if (!Sing.has_access(ns)) { return }
     
-    const augmentations = AugmentationInfo.all(ns);
-    for (const aug of augmentations.values()) {
+    for (const aug of AugmentationInfo.all(ns)) {
         aug.owned = ns.singularity.getOwnedAugmentations(true).includes(aug.name);
         aug.installed = ns.singularity.getOwnedAugmentations(false).includes(aug.name);
         
