@@ -13,6 +13,7 @@ import { Faction } from "modules/factions/FactionEnums";
 import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
 
 export const FactionFuncs = {
+    
     async singularity_backdoor(ns: NS) {
         let player = PlayerInfo.detail(ns);
         let backdoors = Array.from(FactionCache.all(ns).values()).map(f => f.backdoor_req)

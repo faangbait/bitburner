@@ -8,6 +8,7 @@ import { FactionInfo } from "modules/factions/Factions";
 import { PlayerObject } from "modules/players/PlayerEnums";
 import { PlayerInfo } from "modules/players/Players";
 import { DeploymentBundle, ServerObject } from "modules/servers/ServerEnums";
+import { Sing } from "modules/Singularity";
 
 /**
  * Runs when we are Daedalus members
@@ -30,20 +31,23 @@ export default class DaemonRedPill extends DaemonDefault {
         let player = PlayerInfo.detail(ns);
         let daedalus = FactionInfo.detail(ns, "Daedalus");
 
-        if (daedalus.rep > 2.5e7) {
-            bundles.push({
-                file: SINGULARITY_SCRIPTS.PREPARE_FOR_RESET
-            })
-        }
-
-        if (daedalus.favor > 150 * FactionFuncs.min_donation_favor(ns)) { // donations enabled
-            let required_donation = FactionFuncs.get_donation_to_target_rep(ns, daedalus, 2.5e7)
-            if (player.money > required_donation) {
+        if (Sing.has_access(ns)) {
+            if (daedalus.rep > 2.5e7) {
                 bundles.push({
-                    file: SINGULARITY_SCRIPTS.FACTION_DONATE,
-                    args: ["Daedalus", required_donation]
+                    file: SINGULARITY_SCRIPTS.PREPARE_FOR_RESET
                 })
             }
+    
+            if (daedalus.favor > 150 * FactionFuncs.min_donation_favor(ns)) { // donations enabled
+                let required_donation = FactionFuncs.get_donation_to_target_rep(ns, daedalus, 2.5e7)
+                if (player.money > required_donation) {
+                    bundles.push({
+                        file: SINGULARITY_SCRIPTS.FACTION_DONATE,
+                        args: ["Daedalus", required_donation]
+                    })
+                }
+            }
+
         }
 
         bundles.push(...this.select_hack_algorithm(ns, attackers, targets, player));

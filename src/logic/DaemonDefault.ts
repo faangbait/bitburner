@@ -52,7 +52,12 @@ export default class DaemonDefault {
     }
 
     select_hack_algorithm(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) {
-        return this.__hack_default(ns, attackers, targets, player);
+        let home = ServerInfo.detail(ns, "home");
+        // if (home.power < 11) {
+            return this.__hack_default(ns, attackers, targets, player);
+        // } else {
+        //     return this.__hack_hwgw(ns, attackers, targets, player);
+        // }
     }
 
 
@@ -82,18 +87,22 @@ export default class DaemonDefault {
 
         switch (ns.peek(PORTS.control)) {
             case CONTROL_SEQUENCES.LIQUIDATE_CAPITAL:
-                bundles.push({
-                    file: SYS_SCRIPTS.MARKET,
-                    args: ["-l"],
-                    priority: -99
-                })
+                if (ns.ps("home").filter(proc => proc.filename == SYS_SCRIPTS.MARKET).length > 0) {
+                    bundles.push({
+                        file: SYS_SCRIPTS.MARKET,
+                        args: ["-l"],
+                        priority: -99
+                    })
+                }
                 break;
             default:
-                bundles.push({
-                    file: SYS_SCRIPTS.MARKET,
-                    args: [],
-                    priority: 0
-                })
+                if (ns.ps("home").filter(proc => proc.filename == SYS_SCRIPTS.MARKET).length === 0) {
+                    bundles.push({
+                        file: SYS_SCRIPTS.MARKET,
+                        args: [],
+                        priority: 0
+                    })
+                }
                 break;
         }
         return bundles
@@ -342,7 +351,7 @@ export default class DaemonDefault {
         if (player.ports < 5) { bundles.push(...this.__buy_software(ns)); }
         if (player.level < 10 && ![8].includes(this.bn.number)) { bundles.push(...this.__hacknet(ns)) }
 
-        if (player.market.api.tix && attackers.reduce((a, c) => a + c.ram.trueMax, 0) > Math.pow(2, 14)) { bundles.push(...this.__market(ns)) }
+        if (player.market.api.tix) { bundles.push(...this.__market(ns)) }
 
         if (player.ports >= 5 && ![8].includes(this.bn.number)) {
             bundles.push(...this.__purchase_servers(ns, attackers))
@@ -356,7 +365,7 @@ export default class DaemonDefault {
     }
 
     deploy_package(ns: NS, bundle: DeploymentBundle): number {
-        return ns.exec(bundle.file, bundle.attacker||"home", bundle.threads, ...bundle.args || [])
+        return ns.exec(bundle.file, bundle.attacker || "home", bundle.threads, ...bundle.args || [])
     }
 
     iterate(
@@ -369,6 +378,7 @@ export default class DaemonDefault {
         bundles: DeploymentBundle[],
         pids: number[]
     ) {
+        // return
         ns.clearLog();
         let pt = new PrettyTable();
         let headers = ["TARGET", "SCRIPT", "THREADS"]
@@ -431,7 +441,7 @@ export default class DaemonDefault {
     }
 
     __package(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject): DeploymentBundle[] {
-        return [...this.find_focus_task(ns, attackers, player),...this.generate_action_bundle(ns, attackers, targets)]
+        return [...this.find_focus_task(ns, attackers, player), ...this.generate_action_bundle(ns, attackers, targets)]
     }
 
     __deploy(ns: NS, bundles: DeploymentBundle[]): number[] {
@@ -618,8 +628,145 @@ export default class DaemonDefault {
         return bundles;
 
     }
+    __hack_hwgw(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) {
+        let bundles: DeploymentBundle[] = [];
+        let target_heap: MinHeap<string> = new MinHeap();
+        let attacker_heap: MinHeap<string> = new MinHeap();
 
-    __hack_hwgw(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) { // TODO: Optimize algo
+        let files = [
+            {
+                job: "hack",
+                filename: BIN_SCRIPTS.FUTURE_HACK,
+                ram: 1.75,
+            },
+            {
+                job: "grow",
+                filename: BIN_SCRIPTS.FUTURE_GROW,
+                ram: 1.8,
+            },
+            {
+                job: "weaken",
+                filename: BIN_SCRIPTS.FUTURE_WEAK,
+                ram: 1.8,
+            }            
+        ]
+
+        let target_batch_req: Map<string, {
+            h_threads: number,
+            g_threads: number,
+            w1_threads: number,
+            w2_threads: number
+        }> = new Map();
+
+
+
+        for (const t of targets) {
+            let thread_batch = {
+                h_threads: 0,
+                g_threads: 0,
+                w1_threads: 0,
+                w2_threads: 0,
+            }
+
+            if (t.money.available >= t.money.max && t.security.level <= t.security.min) {
+                thread_batch.h_threads = Math.ceil(ns.hackAnalyzeThreads(t.id, t.money.max * .10));
+                thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, 1 / .10))
+                thread_batch.w1_threads = Math.ceil(thread_batch.h_threads * .002)
+                thread_batch.w2_threads = Math.ceil(thread_batch.g_threads * .004)
+            } else {
+                if (isFinite(t.money.max / t.money.available)){
+                    thread_batch.g_threads = Math.ceil(ns.growthAnalyze(t.id, t.money.max / t.money.available ))
+                } else { thread_batch.g_threads = 10 }
+                
+                thread_batch.w1_threads = Math.ceil((t.security.level - t.security.min) / .05)
+                thread_batch.w2_threads = Math.ceil(thread_batch.g_threads * .004)
+            }
+
+            let sum_threads = [
+                thread_batch.h_threads,
+                thread_batch.g_threads,
+                thread_batch.w1_threads,
+                thread_batch.w2_threads
+            ].reduce((a,c) => a + c, 0)
+
+            if (sum_threads > 0) {
+                target_batch_req.set(t.id, thread_batch)
+                target_heap.enqueue(t.id, sum_threads)
+            }
+        }
+
+        if (target_heap.size === 0) { return [] }
+
+        attacker_heap.buildHeap(new Map(attackers.filter(a => a.ram.free > 1.8).map(a => [a.id, a.ram.free])), [])
+
+        let next_target = target_heap.dequeue();
+        let next_launch_date = new Date().valueOf()+ 100;
+        let spacing = 50;
+
+        while (next_target) {
+            next_launch_date += 100;
+            if (!target_batch_req.has(next_target.key)) { next_target = target_heap.dequeue(); continue; }
+
+            let target = next_target.key;
+            let thread_batch = target_batch_req.get(next_target.key);
+            if (!thread_batch) { next_target = target_heap.dequeue(); continue; }
+
+            let next_attacker = attacker_heap.dequeue();
+
+            while (next_attacker) {
+                let a = next_attacker.key;
+                let ram = next_attacker.val;
+
+                if (ram > thread_batch.w1_threads * 1.8) {
+                    ram -= thread_batch.w1_threads * 1.8;
+                    bundles.push({
+                        file: BIN_SCRIPTS.FUTURE_WEAK,
+                        attacker: a,
+                        threads: thread_batch.w1_threads,
+                        args: [target, next_launch_date + spacing + ns.getHackTime(target)]
+                    })
+                }
+
+                if (ram > thread_batch.w2_threads * 1.8) {
+                    ram -= thread_batch.w2_threads * 1.8;
+                    bundles.push({
+                        file: BIN_SCRIPTS.FUTURE_WEAK,
+                        attacker: a,
+                        threads: thread_batch.w2_threads,
+                        args: [target, next_launch_date + (3 * spacing) + ns.getHackTime(target)]
+                    })
+                }
+
+                if (ram > thread_batch.g_threads * 1.8) {
+                    ram -= thread_batch.g_threads * 1.8;
+                    bundles.push({
+                        file: BIN_SCRIPTS.FUTURE_GROW,
+                        attacker: a,
+                        threads: thread_batch.g_threads,
+                        args: [target, next_launch_date + (2 * spacing) + ns.getHackTime(target)]
+                    })
+                }
+
+                if (ram > thread_batch.h_threads * 1.75) {
+                    ram -= thread_batch.h_threads * 1.75;
+                    bundles.push({
+                        file: BIN_SCRIPTS.FUTURE_HACK,
+                        attacker: a,
+                        threads: thread_batch.h_threads,
+                        args: [target, next_launch_date + ns.getHackTime(target)]
+                    })
+                }
+
+                next_attacker = attacker_heap.dequeue();
+            }
+
+            next_target = target_heap.dequeue();
+        }
+
+        return bundles
+    }
+
+    __hack_hwgw1(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) { // TODO: Optimize algo
         let bundles: DeploymentBundle[] = [];
         let required_threads: Map<string, { h_threads: number, g_threads: number, w_threads: number }> = new Map();
         let files = [
@@ -747,6 +894,46 @@ export default class DaemonDefault {
             }
         }
         return bundles;
+    }
+
+    __hack_cash(ns :NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) {
+        let bundles: DeploymentBundle[] = [];
+
+        let file = { job: "hack", filename: BIN_SCRIPTS.BASIC_HACK, ram: 1.7 }
+        let target_heap: MinHeap<string> = new MinHeap();
+        let attacker_heap: MinHeap<string> = new MinHeap();
+
+        for (const t of targets) {
+            target_heap.enqueue(t.id, Math.ceil(ns.hackAnalyzeThreads(t.id, t.money.available)))
+        }
+
+        attacker_heap.buildHeap(new Map(attackers.filter(a => a.ram.free > file.ram).map(a => [a.id, a.ram.free])), [])
+
+        let next_target = target_heap.dequeue();
+        while (next_target) {
+            let threads = next_target.val;
+            let target = next_target.key;
+
+            let next_attacker = attacker_heap.dequeue();
+            while (next_attacker) {
+                let t = Math.min(Math.floor(next_attacker.val /  file.ram), threads)
+                if (t > 0) {
+                    bundles.push({
+                        file: file.filename,
+                        attacker: next_attacker.key,
+                        threads: t,
+                        args: [target, true]
+                    })
+                }
+                if (threads > t) {
+                    next_attacker = attacker_heap.dequeue();
+                } else { next_attacker = null; }
+            }
+            next_target = target_heap.dequeue();
+        }
+
+
+        return bundles
     }
 
     __hack_support_stocks(ns: NS, attackers: ServerObject[], targets: ServerObject[], player: PlayerObject) { // TODO: Optimize algo

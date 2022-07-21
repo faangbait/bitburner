@@ -2,8 +2,11 @@ import { NS } from "Bitburner";
 import { AugmentationInfo } from "modules/augmentations/Augmentations";
 import { AugCache } from "modules/augmentations/AugmentationCache";
 import { Factions } from "modules/factions/FactionEnums";
+import { Sing } from "modules/Singularity";
 
 export const main = async (ns: NS) => {
+    if (!Sing.has_access(ns)) { return }
+    
     const augmentations = AugmentationInfo.all(ns);
     for (const aug of augmentations.values()) {
         aug.owned = ns.singularity.getOwnedAugmentations(true).includes(aug.name);

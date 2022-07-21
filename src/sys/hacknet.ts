@@ -76,9 +76,10 @@ export const main = async (ns: NS) => {
     // continue buying until past breakeven point
 
     while (true) {
+        await ns.sleep(1)
         await check_control_sequence(ns);
         
-        while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.LIQUIDATE_CAPITAL) {
+        if (ns.peek(PORTS.control) === CONTROL_SEQUENCES.LIQUIDATE_CAPITAL) {
             ns.exit()
         }
 
