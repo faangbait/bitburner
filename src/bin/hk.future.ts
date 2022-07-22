@@ -10,13 +10,11 @@
 
 import { NS } from "Bitburner";
 import { check_control_sequence } from "lib/Database";
-import { TermLogger } from "lib/Logger";
 
 const RUNTIME_MOD = 1;
 
 export const main = async (ns: NS) => {
     let args = ns.args;
-    let logger = new TermLogger(ns);
 
     let target = args[0];
     let nextlaunchdate = args[1];
@@ -35,6 +33,6 @@ export const main = async (ns: NS) => {
         await ns.sleep(sleeptime);
         await ns.hack(target);
         nextlaunchdate += looptime;
-        logger.info(`Hack finished against ${target} at ${new Date().getSeconds()}.${new Date().getMilliseconds()}`)
+        ns.tprint(`Hack finished against ${target} at ${new Date().getSeconds()}.${new Date().getMilliseconds()}`)
     }
 }

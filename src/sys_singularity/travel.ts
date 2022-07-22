@@ -9,11 +9,9 @@
 
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 
 export async function main(ns: NS) {
     let args = ns.args;
-    let logger = new TermLogger(ns);
 
     let city = args[0];
     if (typeof (city) !== "string") { return }
@@ -21,7 +19,7 @@ export async function main(ns: NS) {
     try {
         ns.singularity.travelToCity(city);
     } catch {
-        logger.err(`REQUIRED TRAVEL: ${city}`)
+        ns.tprint(`REQUIRED TRAVEL: ${city}`)
     }
 
 }

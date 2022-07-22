@@ -2,6 +2,8 @@ import { NS } from "Bitburner";
 import { CONTROL_SEQUENCES } from "lib/Database";
 import { SINGULARITY_SCRIPTS } from "lib/Variables";
 import DaemonDefault from "logic/DaemonDefault";
+import { AugCache } from "modules/augmentations/AugmentationCache";
+import { AugmentationNames } from "modules/augmentations/AugmentationEnums";
 import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
 import { FactionFuncs } from "modules/factions/FactionFunctions";
 import { FactionInfo } from "modules/factions/Factions";
@@ -15,18 +17,27 @@ import { Sing } from "modules/Singularity";
  * Goal: Get Red Pill
  */
 export default class DaemonRedPill extends DaemonDefault {
-    constructor(ns: NS, servers: ServerObject[], player: PlayerObject) {
-        super(ns, servers, player);
-        this.module = "DAEMON_REDPILL";
+    constructor(ns: NS) {
+        super(ns);
+        this.module = "DAEMON_REDPILL"
     }
 
-    find_focus_task(ns: NS, attackers: ServerObject[], player: PlayerObject): DeploymentBundle[] {
-        let bundles: DeploymentBundle[] = [];
-        this.__start_faction_work(ns, "Daedalus", "Hacking", true);
-        return bundles
+    active(ns: NS, servers: ServerObject[], player: PlayerObject): boolean {
+        return player.faction.membership.includes("Daedalus")
     }
 
-    generate_action_bundle(ns: NS, attackers: ServerObject[], targets: ServerObject[]): DeploymentBundle[] {
+    escape(ns: NS, servers: ServerObject[], player: PlayerObject): boolean {
+        let augments = AugCache.all(ns);
+        let rp = augments.get(AugmentationNames.TheRedPill)
+        if (rp && rp.installed) { return true }
+        return false
+    }
+
+    generate_focus_bundle(ns: NS): DeploymentBundle[] {
+        return this.__work_faction(ns, "Daedalus", "Hacking", true)
+    }
+
+    generate_hacking_bundle(ns: NS, attackers: ServerObject[], targets: ServerObject[]): DeploymentBundle[] {
         let bundles: DeploymentBundle[] = [];
         let player = PlayerInfo.detail(ns);
         let daedalus = FactionInfo.detail(ns, "Daedalus");
@@ -37,7 +48,7 @@ export default class DaemonRedPill extends DaemonDefault {
                     file: SINGULARITY_SCRIPTS.PREPARE_FOR_RESET
                 })
             }
-    
+
             if (daedalus.favor > 150 * FactionFuncs.min_donation_favor(ns)) { // donations enabled
                 let required_donation = FactionFuncs.get_donation_to_target_rep(ns, daedalus, 2.5e7)
                 if (player.money > required_donation) {
@@ -47,10 +58,10 @@ export default class DaemonRedPill extends DaemonDefault {
                     })
                 }
             }
-
         }
 
-        bundles.push(...this.select_hack_algorithm(ns, attackers, targets, player));
+        bundles.push(...this.__hack_default(ns, attackers, targets))
         return bundles
+        
     }
 }

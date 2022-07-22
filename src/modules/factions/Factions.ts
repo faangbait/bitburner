@@ -33,7 +33,7 @@ class Faction {
     hnet_req: { level: number, ram: number, core: number } = { level: 0, ram: 0, core: 0 }
 
     constructor(ns: NS, name: string) {
-        this.id = Factions[name];
+        this.id = name;
         this.name = name;
         
         

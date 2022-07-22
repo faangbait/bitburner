@@ -10,11 +10,9 @@
 
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 
 export async function main(ns: NS) {
     let args = ns.args;
-    let logger = new TermLogger(ns);
 
     let name = args[0];
     let amount = args[1];
@@ -25,6 +23,6 @@ export async function main(ns: NS) {
     try {
         ns.singularity.donateToFaction(name, amount);
     } catch {
-        logger.err(`REQUIRED FACTION DONATION: ${name} - ${amount}`)
+        ns.tprint(`REQUIRED FACTION DONATION: ${name} - ${amount}`)
     }
 }

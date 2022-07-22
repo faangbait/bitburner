@@ -2,7 +2,6 @@ import { NS } from "Bitburner";
 import { MOTD } from "lib/Motd";
 import { CORE_RUNTIMES, TEMP_F } from "lib/Variables";
 import { CACHE_SCRIPTS } from "lib/Database";
-import { TermLogger } from "lib/Logger";
 import { Scanner } from "lib/Scan";
 import { partition_array } from "structures/basics/partitions";
 
@@ -16,7 +15,6 @@ async function launch_and_wait(ns: NS, script: CACHE_SCRIPTS, threads = 1, args:
 export async function main(ns: NS) {
     
     let args = ns.args;
-    let logger = new TermLogger(ns);
 
 
     let s = partition_array(Scanner.list(ns), function(a){return a !== "home"})
@@ -28,7 +26,7 @@ export async function main(ns: NS) {
     if (typeof current_bitnode !== "number") {
         current_bitnode = JSON.parse(ns.read(TEMP_F.CURRENT_BITNODE));
         if (typeof current_bitnode!== "number") {
-            logger.err("Couldn't detect current BitNode; please relaunch with current BitNode as an argument.");
+            ns.tprint("Couldn't detect current BitNode; please relaunch with current BitNode as an argument.");
             return
         }
     }
@@ -39,7 +37,7 @@ export async function main(ns: NS) {
         ns.clearPort(i)
     }
     
-    logger.info(`Detected BitNode ${current_bitnode}`);
+    ns.tprint(`Detected BitNode ${current_bitnode}`);
     
     for (const script of [
         CACHE_SCRIPTS.BITNODES,

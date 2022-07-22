@@ -1,9 +1,7 @@
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 import { PORTS } from "lib/Database";
 
 export async function main(ns: NS) {
-    let logger = new TermLogger(ns);
     while (true) {
         let comms: string = ns.readPort(PORTS.swap);
     
@@ -20,7 +18,7 @@ export async function main(ns: NS) {
                     // TODO: Find server with free RAM
                 }
             } catch {
-                logger.err(`Error parsing JSON on port ${PORTS.swap}, received: ${comms}`)
+                ns.tprint(`Error parsing JSON on port ${PORTS.swap}, received: ${comms}`)
             }
         }
     }

@@ -18,15 +18,16 @@ export const FactionFuncs = {
         let player = PlayerInfo.detail(ns);
         let backdoors = Array.from(FactionCache.all(ns).values()).map(f => f.backdoor_req)
         let faction_servers = backdoors.filter(hostname => hostname !== "").map(hostname => ServerInfo.detail(ns, hostname))
-        for (const server of faction_servers.filter(s => 
-            s.admin && 
-            !s.backdoored && 
-            s.level <= player.hacking.level && 
-            s.ports.required <= 
-            player.ports)) {
-                await ReservedRam.use(ns, SINGULARITY_SCRIPTS.CONNECT_SERVER, 1, [server.id, true])
-            }
+        let serv = faction_servers.find(s =>
+            s.admin &&
+            !s.backdoored &&
+            s.level <= player.hacking.level &&
+            s.ports.required <=
+            player.ports)
 
+        if (serv) {
+            await ReservedRam.use(ns, SINGULARITY_SCRIPTS.CONNECT_SERVER, 1, [serv.id, true])
+        }
     },
 
     get_donation_to_target_rep(ns: NS, faction: Faction, target_rep: number) {
@@ -43,7 +44,7 @@ export const FactionFuncs = {
 
     async join_unblocked_factions(ns: NS) {
         let factions = Array.from(FactionCache.all(ns).values());
-        for (const faction of factions.filter(f => f.enemies.length === 0)) {
+        for (const faction of factions.filter(f => f.enemies.length === 0 && f.invited)) {
             await ReservedRam.use(ns, SINGULARITY_SCRIPTS.FACTION_JOIN, 1, [faction.name])
         }
     }

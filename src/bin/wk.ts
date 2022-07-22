@@ -10,7 +10,6 @@
 
 import { NS } from "Bitburner";
 import { check_control_sequence } from "lib/Database";
-import { TermLogger } from "lib/Logger";
 
 export const main = async (ns: NS) => {
     ns.disableLog("ALL");
@@ -19,7 +18,6 @@ export const main = async (ns: NS) => {
     ns.enableLog("weaken");
 
     let args = ns.args;
-    let logger = new TermLogger(ns);
 
     let target = args[0];
     let runonce = args[1];

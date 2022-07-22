@@ -9,11 +9,9 @@
 
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 
 export async function main(ns: NS) {
     let args = ns.args;
-    let logger = new TermLogger(ns);
 
     let faction_name = args[0];
 
@@ -22,6 +20,6 @@ export async function main(ns: NS) {
     try {
         ns.singularity.joinFaction(faction_name);
     } catch {
-        logger.err(`REQUIRED FACTION JOIN: ${faction_name}`)
+        ns.tprint(`REQUIRED FACTION JOIN: ${faction_name}`)
     }
 }

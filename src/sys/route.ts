@@ -8,14 +8,12 @@
  */
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 import { Scanner } from "lib/Scan";
 
 export async function main(ns: NS) {
-    const logger = new TermLogger(ns);
     const args = ns.args;
     if (typeof args[0] === "string") { 
-        logger.info(Scanner.route(ns, args[0]).join("; connect ") + "; backdoor")
+        ns.tprint(Scanner.route(ns, args[0]).join("; connect ") + "; backdoor")
     }
 }
 

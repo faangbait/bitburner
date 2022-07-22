@@ -9,7 +9,6 @@
 
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 import { CORE_RUNTIMES } from "lib/Variables";
 import { AugmentationFuncs } from "modules/augmentations/AugmentationFunctions";
 import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
@@ -19,10 +18,10 @@ import { PlayerCache } from "modules/players/PlayerCache";
 
 export async function main(ns: NS) {
     ns.tprint("Preparing to purchase augs and reset")
+    ns.singularity.stopAction();
     await ns.sleep(10000);
 
     let args = ns.args;
-    let logger = new TermLogger(ns);
 
     let soft = args[0];
 
@@ -43,6 +42,11 @@ export async function main(ns: NS) {
             if (faction) {
                 if (ns.singularity.purchaseAugmentation(faction.name, aug.name)){ aug.owned = true };
             }
+        }
+
+        
+        while(ns.singularity.purchaseAugmentation(Array.from(factions.values()).sort((a,b) => b.rep - a.rep)[0].name,"NeuroFlux Governor")) {
+            await ns.sleep(1)
         }
       
         faction_donation = player.faction.membership.find(f => 
@@ -68,9 +72,9 @@ export async function main(ns: NS) {
         }
     } catch {
         if (!soft) {
-            logger.err(`Ready to install augmentations.`)
+            ns.tprint(`Ready to install augmentations.`)
         } else {
-            logger.err(`Ready for soft reset.`)
+            ns.tprint(`Ready for soft reset.`)
         }
     }
 }

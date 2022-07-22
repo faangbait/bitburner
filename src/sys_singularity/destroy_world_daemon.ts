@@ -8,12 +8,10 @@
  */
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 import { CORE_RUNTIMES, TEMP_F } from "lib/Variables";
 
 export async function main(ns: NS) {
     let args = ns.args;
-    let logger = new TermLogger(ns);
 
     let next_bitnode = args[0];
 
@@ -23,6 +21,6 @@ export async function main(ns: NS) {
         try {
             ns.singularity.destroyW0r1dD43m0n(next_bitnode, CORE_RUNTIMES.LAUNCHER)
         } catch {
-            logger.err(`Ready to destroy world daemon and restart in bitnode ${next_bitnode}`)
+            ns.tprint(`Ready to destroy world daemon and restart in bitnode ${next_bitnode}`)
         }
 }

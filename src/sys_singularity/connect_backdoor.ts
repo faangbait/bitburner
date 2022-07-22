@@ -9,13 +9,11 @@
  */
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 import { Scanner } from "lib/Scan";
 
 
 export async function main(ns: NS) {
     let args = ns.args;
-    let logger = new TermLogger(ns);
 
     let hostname = args[0];
     let backdoor = args[1];
@@ -36,7 +34,7 @@ export async function main(ns: NS) {
             }
         }
     } catch {
-        logger.err("REQUIRED ROUTING: ")
-        logger.info(route_list.join("; connect ") + "; backdoor")
+        ns.tprint("REQUIRED ROUTING: ")
+        ns.tprint(route_list.join("; connect ") + "; backdoor")
     }
 }

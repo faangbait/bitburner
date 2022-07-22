@@ -41,8 +41,8 @@ export const ServerFuncs = {
         return threads;
     },
 
-    backdoor_critical_servers(ns: NS) {
-
+    get_processes(ns: NS, server_name: string, process_name: string) {
+        return ns.ps(server_name).filter(proc => proc.filename === process_name)
     }
 }
 

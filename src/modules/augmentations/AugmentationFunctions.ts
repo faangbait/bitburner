@@ -4,7 +4,6 @@
  */
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
 import { AugCache } from "modules/augmentations/AugmentationCache";
 import { Augmentation, AugmentationNames, Augmentations } from "modules/augmentations/AugmentationEnums";
@@ -58,7 +57,6 @@ export const AugmentationFuncs = {
             return filtered_augs
         }
         
-        let logger = new TermLogger(ns);
         let filt: typeof Augmentations = new Map();
         
         switch (BitNodeCache.read(ns, "current").number) {
@@ -263,7 +261,7 @@ export const AugmentationFuncs = {
                 add(filt, AugmentationNames.TheRedPill);
                 break;
             default:
-                logger.err("Lost BitNode cache, can't determine current bitnode")
+                ns.tprint("Lost BitNode cache, can't determine current bitnode")
                 break;
         }
 

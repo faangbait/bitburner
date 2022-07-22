@@ -7,12 +7,10 @@
  */
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 import PrettyTable from "lib/PrettyTable";
 import { Scanner } from "lib/Scan";
 
 export async function main(ns: NS) {
-    let logger = new TermLogger(ns);
     let names = Scanner.list(ns);
     if (names) {
         let pt = new PrettyTable();
@@ -51,7 +49,7 @@ export async function main(ns: NS) {
         ns.tprint(pt.print());
 
     } else {
-        logger.err(`Error getting server list`);
+        ns.tprint(`Error getting server list`);
     }
 }
 

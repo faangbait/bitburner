@@ -1,5 +1,4 @@
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 import { PlayerInfo } from "modules/players/Players";
 import { ServerInfo } from "modules/servers/Servers";
 import { CORE_RUNTIMES, SYS_SCRIPTS, } from "lib/Variables";
@@ -12,13 +11,11 @@ export const main = async (ns: NS) => {
     ns.disableLog("ALL");
     ns.tail();
 
-    const logger = new TermLogger(ns);
-
     let start_time = performance.now();
     await init(ns);
     await DaemonStrategy.init(ns);
     
-    logger.log(`Initialization completed in ${ns.nFormat(performance.now() - start_time, '0.0a')} milliseconds`)
+    ns.tprint(`Initialization completed in ${ns.nFormat(performance.now() - start_time, '0.0a')} milliseconds`)
 
     update_players(ns).catch(console.error);
     update_servers(ns).catch(console.error);

@@ -16,7 +16,7 @@ class Augmentation {
     installed = false;
 
     constructor(ns: NS, name: string) {
-        this.id = AugmentationNames[name];
+        this.id = name;
         this.name = name;
         this.prereqs = this.prereqs ? this.prereqs : [];
         

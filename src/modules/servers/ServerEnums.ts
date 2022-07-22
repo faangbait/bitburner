@@ -1,4 +1,4 @@
-export const RESERVED_HOME_RAM = 16;
+export const RESERVED_HOME_RAM = 24;
 
 export interface ServerObject {
     id: string;

@@ -4,28 +4,28 @@
 import { NS } from "Bitburner";
 
 // Non-Singularity version - use one or the other
-export enum CACHE_SCRIPTS {
-    BITNODES = `/sys/cache_bitnode.js`,
-    AUGMENTATIONS = `/sys/cache_augmentations.js`,
-    FACTIONS = `/sys/cache_factions.js`,
-    SERVERS = `/sys/cache_servers.js`,
-    PLAYERS = `/sys/cache_players.js`,
-    CORPORATIONS = `/sys/cache_corporations.js`,
-    SLEEVES = `/sys/cache_sleeves.js`,
-    CRIMES = `/sys/cache_crimes.js`,
-}
+// export enum CACHE_SCRIPTS {
+//     BITNODES = `/sys/cache_bitnode.js`,
+//     AUGMENTATIONS = `/sys/cache_augmentations.js`,
+//     FACTIONS = `/sys/cache_factions.js`,
+//     SERVERS = `/sys/cache_servers.js`,
+//     PLAYERS = `/sys/cache_players.js`,
+//     CORPORATIONS = `/sys/cache_corporations.js`,
+//     SLEEVES = `/sys/cache_sleeves.js`,
+//     CRIMES = `/sys/cache_crimes.js`,
+// }
 
 // Singularity version - use one or the other
-// export enum CACHE_SCRIPTS {
-//     BITNODES = `/sys_singularity/cache_bitnode.js`,
-//     AUGMENTATIONS = `/sys_singularity/cache_augmentations.js`,
-//     FACTIONS = `/sys_singularity/cache_factions.js`,
-//     SERVERS = `/sys_singularity/cache_servers.js`,
-//     PLAYERS = `/sys_singularity/cache_players.js`,
-//     CORPORATIONS = `/sys_singularity/cache_corporations.js`,
-//     SLEEVES = `/sys_singularity/cache_sleeves.js`,
-//     CRIMES = `/sys_singularity/cache_crimes.js`,
-// }
+export enum CACHE_SCRIPTS {
+    BITNODES = `/sys_singularity/cache_bitnode.js`,
+    AUGMENTATIONS = `/sys_singularity/cache_augmentations.js`,
+    FACTIONS = `/sys_singularity/cache_factions.js`,
+    SERVERS = `/sys_singularity/cache_servers.js`,
+    PLAYERS = `/sys_singularity/cache_players.js`,
+    CORPORATIONS = `/sys_singularity/cache_corporations.js`,
+    SLEEVES = `/sys_singularity/cache_sleeves.js`,
+    CRIMES = `/sys_singularity/cache_crimes.js`,
+}
 
 export enum PORTS {
     control = 1,
@@ -87,10 +87,11 @@ export const check_control_sequence = async (ns: NS) => {
             break;
         case CONTROL_SEQUENCES.PAUSE:
             while (ns.peek(PORTS.control) === CONTROL_SEQUENCES.PAUSE) {
-                await ns.asleep(10);
+                await ns.sleep(10);
             }
             break;
         default:
+            await ns.sleep(1);
             break;
     }
 }

@@ -10,11 +10,9 @@
  */
 
 import { NS } from "Bitburner";
-import { TermLogger } from "lib/Logger";
 
 export async function main(ns: NS) {
     let args = ns.args;
-    let logger = new TermLogger(ns);
 
     let command = args[0];
     let hostname = args[1];
@@ -24,11 +22,11 @@ export async function main(ns: NS) {
         if (typeof (hostname) === "string") {
             if (command === "buy") {
                 if (typeof (size) === "number") {
-                    logger.info(`Purchased server ${ns.purchaseServer(hostname, size)} of size ${size}`)
-                } else { logger.err("Can't buy server - size not found") }
+                    ns.tprint(`Purchased server ${ns.purchaseServer(hostname, size)} of size ${size}`)
+                } else { ns.tprint("Can't buy server - size not found") }
             } else if (command === "sell") {
-                if (ns.deleteServer(hostname)) { logger.info(`Deleted server ${hostname}`) }
+                if (ns.deleteServer(hostname)) { ns.tprint(`Deleted server ${hostname}`) }
             }
-        } else { logger.err("Can't buy/sell server - invalid hostname") }
+        } else { ns.tprint("Can't buy/sell server - invalid hostname") }
     }
 }
