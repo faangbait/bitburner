@@ -236,7 +236,7 @@ class Player {
             ].includes(file)),
 
             smtp: ns.ls("home").some(file => [
-                "RelaySMTP.exe",
+                "relaySMTP.exe",
             ].includes(file)),
 
             http: ns.ls("home").some(file => [
