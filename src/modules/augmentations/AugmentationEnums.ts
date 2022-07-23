@@ -194,6 +194,7 @@ export interface Augmentation {
     stats: AugStats;
     owned: boolean;
     installed: boolean;
+    wanted: boolean;
 }
 
 export const Augmentations: Map<string, Augmentation> = new Map();

@@ -34,20 +34,23 @@ export async function main(ns: NS) {
     let faction_donation: string | undefined = undefined;
 
     if (!soft) {
-        let desired_augs = AugmentationFuncs.get_augmentation_path(ns)
-        let sorted = Array.from(desired_augs.values()).filter(a => !a.owned).sort((a,b) => b.baseCost - a.baseCost)
-    
+        let desired_augs = AugmentationFuncs.get_augmentation_path(ns).filter(a => !a.owned)
+        // let sorted = Array.from(desired_augs.values()).filter(a => !a.owned).sort((a,b) => b.baseCost - a.baseCost)
+        let sorted = desired_augs.sort((a,b) => b.baseCost - a.baseCost)
         for (const aug of sorted) {
-            let faction = Array.from(factions.values()).find(f => f.rep >= aug.baseRepRequirement * bn.multipliers.augmentations.rep)
-            if (faction) {
-                if (ns.singularity.purchaseAugmentation(faction.name, aug.name)){ aug.owned = true };
+            for (const faction of player.faction.membership) {
+                ns.singularity.purchaseAugmentation(faction, aug.name)
             }
         }
 
-        
-        while(ns.singularity.purchaseAugmentation(Array.from(factions.values()).sort((a,b) => b.rep - a.rep)[0].name,"NeuroFlux Governor")) {
-            await ns.sleep(1)
+        let largest_rep = Array.from(factions.values()).sort((a,b) => b.rep - a.rep)[0]
+        if (largest_rep) {
+            while (true) { 
+                if (!ns.singularity.purchaseAugmentation(largest_rep.name, "NeuroFlux Governor")) { break; }
+                await ns.sleep(1)
+            }
         }
+
       
         faction_donation = player.faction.membership.find(f => 
             sorted.some(a => !a.owned && a.factions.includes(f)) && // a faction we're a member of has an aug we need
@@ -66,6 +69,7 @@ export async function main(ns: NS) {
     
     try {
         if (!soft) {
+            ns.tprint("Ready for reset")
             ns.singularity.installAugmentations(CORE_RUNTIMES.LAUNCHER)
         } else {
             ns.singularity.softReset(CORE_RUNTIMES.LAUNCHER)

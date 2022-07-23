@@ -2,6 +2,7 @@ import { NS } from "Bitburner";
 import { CONTROL_SEQUENCES, PORTS } from "lib/Database";
 import PrettyTable from "lib/PrettyTable";
 import { BIN_SCRIPTS, SINGULARITY_SCRIPTS, SYS_SCRIPTS } from "lib/Variables";
+import { AugCache } from "modules/augmentations/AugmentationCache";
 import { AugmentationFuncs } from "modules/augmentations/AugmentationFunctions";
 import { BitNodeCache } from "modules/bitnodes/BitnodeCache";
 import { CrimeFuncs } from "modules/crimes/CrimeFunctions";
@@ -44,7 +45,18 @@ export default class DaemonDefault {
     }
 
     generate_focus_bundle(ns: NS): DeploymentBundle[] {
-        return this.__work_faction(ns)
+        if (!Sing.has_access(ns)) { return [] }
+
+        let factions = Array.from(FactionCache.all(ns).values())
+            .filter(f => f.member || f.invited)
+            .filter(f => f.augmentations.some(a => AugCache.read(ns, a).wanted && AugCache.read(ns, a).baseRepRequirement > f.rep))
+        
+        if (factions.length > 0) {
+            return this.__work_faction(ns, factions[0].name)
+        } else {
+            return this.__select_crime(ns, false, "intelligence")
+        }
+
     }
 
     generate_hacking_bundle(ns: NS, attackers: ServerObject[], targets: ServerObject[]): DeploymentBundle[] {

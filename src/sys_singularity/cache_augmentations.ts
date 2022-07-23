@@ -3,13 +3,17 @@ import { AugmentationInfo } from "modules/augmentations/Augmentations";
 import { AugCache } from "modules/augmentations/AugmentationCache";
 import { Factions } from "modules/factions/FactionEnums";
 import { Sing } from "modules/Singularity";
+import { AugmentationFuncs } from "modules/augmentations/AugmentationFunctions";
+import { AugmentationNames } from "modules/augmentations/AugmentationEnums";
 
 export const main = async (ns: NS) => {
     if (!Sing.has_access(ns)) { return }
-    
+    let wanted_augs = AugmentationFuncs.get_augmentation_path(ns)
     for (const aug of AugmentationInfo.all(ns)) {
+        if (!aug) { continue; }
         aug.owned = ns.singularity.getOwnedAugmentations(true).includes(aug.name);
         aug.installed = ns.singularity.getOwnedAugmentations(false).includes(aug.name);
+        aug.wanted = wanted_augs.filter(a => a && a.name).map(a => a.name).includes(aug.name)
         
         let stats = ns.singularity.getAugmentationStats(aug.name);
         aug.stats = {

@@ -47,225 +47,227 @@ export const AugmentationFuncs = {
     },
     
     get_augmentation_path(ns: NS) {
-        let aug_list: typeof Augmentations = AugCache.all(ns);
+        let aug_map: typeof Augmentations = AugCache.all(ns);
+        let filtered_list: Augmentation[] = [];
+
         
-        const add = (filtered_augs: typeof Augmentations, aug: AugmentationNames): typeof Augmentations => {
-            let aug_obj = aug_list.get(AugmentationNames[aug]);
-            if (aug_obj) {
-                filtered_augs.set(AugmentationNames[aug], aug_obj)
-            }
-            return filtered_augs
-        }
+        // const add = (filtered_augs: typeof Augmentations, aug: AugmentationNames): typeof Augmentations => {
+        //     let aug_obj = aug_list.get(AugmentationNames[aug]);
+        //     if (aug_obj) {
+        //         filtered_augs.set(AugmentationNames[aug], aug_obj)
+        //     }
+        //     return filtered_augs
+        // }
         
-        let filt: typeof Augmentations = new Map();
+        // let filt: typeof Augmentations = new Map();
         
         switch (BitNodeCache.read(ns, "current").number) {
             case 1:
                 // Hacknet
-                add(filt, AugmentationNames.HacknetNodeCPUUpload);
-                add(filt, AugmentationNames.HacknetNodeCacheUpload);
-                add(filt, AugmentationNames.HacknetNodeCoreDNI);
-                add(filt, AugmentationNames.HacknetNodeKernelDNI);
-                add(filt, AugmentationNames.HacknetNodeNICUpload);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCPUUpload));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCacheUpload));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCoreDNI));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeKernelDNI));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeNICUpload));
                 // Hacking
-                add(filt, AugmentationNames.CashRoot);
-                add(filt, AugmentationNames.Neuralstimulator);
-                add(filt, AugmentationNames.Neurotrainer1);
-                add(filt, AugmentationNames.Neurotrainer2);
-                add(filt, AugmentationNames.CranialSignalProcessorsG1);
-                add(filt, AugmentationNames.CranialSignalProcessorsG2);
-                add(filt, AugmentationNames.CranialSignalProcessorsG3);
-                add(filt, AugmentationNames.CranialSignalProcessorsG4);
-                add(filt, AugmentationNames.CranialSignalProcessorsG5);
-                add(filt, AugmentationNames.BitWire);
-                add(filt, AugmentationNames.SynapticEnhancement);
-                add(filt, AugmentationNames.ArtificialSynapticPotentiation);
-                add(filt, AugmentationNames.ENM);
-                add(filt, AugmentationNames.ENMCore);
-                add(filt, AugmentationNames.ENMCoreV2);
-                add(filt, AugmentationNames.NeuralRetentionEnhancement);
-                add(filt, AugmentationNames.CRTX42AA);
-                add(filt, AugmentationNames.DataJack);
-                add(filt, AugmentationNames.EnhancedMyelinSheathing);
-                add(filt, AugmentationNames.TheBlackHand);
-                add(filt, AugmentationNames.ArtificialBioNeuralNetwork);
-                add(filt, AugmentationNames.NeuralAccelerator);
-                add(filt, AugmentationNames.Neurolink);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CashRoot));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neuralstimulator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurotrainer1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurotrainer2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG3));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG4));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG5));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.BitWire));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.SynapticEnhancement));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ArtificialSynapticPotentiation));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENM));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCore));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCoreV2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NeuralRetentionEnhancement));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CRTX42AA));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.DataJack));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.EnhancedMyelinSheathing));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.TheBlackHand));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ArtificialBioNeuralNetwork));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NeuralAccelerator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurolink));
                 // Social
-                add(filt, AugmentationNames.SNA);
-                add(filt, AugmentationNames.ADRPheromone1);
-                add(filt, AugmentationNames.Neuregen);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.SNA));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ADRPheromone1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neuregen));
                 // Post-Daedalus
-                add(filt, AugmentationNames.ENMCoreV3);
-                add(filt, AugmentationNames.ENMAnalyzeEngine);
-                add(filt, AugmentationNames.ENMDMA);
-                add(filt, AugmentationNames.TheRedPill);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCoreV3));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMAnalyzeEngine));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMDMA));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.TheRedPill));
                 break;
             case 2:
                 // Hacknet
-                add(filt, AugmentationNames.HacknetNodeCPUUpload);
-                add(filt, AugmentationNames.HacknetNodeCacheUpload);
-                add(filt, AugmentationNames.HacknetNodeCoreDNI);
-                add(filt, AugmentationNames.HacknetNodeKernelDNI);
-                add(filt, AugmentationNames.HacknetNodeNICUpload);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCPUUpload));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCacheUpload));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCoreDNI));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeKernelDNI));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeNICUpload));
                 // Hacking
-                add(filt, AugmentationNames.CashRoot);
-                add(filt, AugmentationNames.Neuralstimulator);
-                add(filt, AugmentationNames.Neurotrainer1);
-                add(filt, AugmentationNames.Neurotrainer2);
-                add(filt, AugmentationNames.CranialSignalProcessorsG1);
-                add(filt, AugmentationNames.CranialSignalProcessorsG2);
-                add(filt, AugmentationNames.CranialSignalProcessorsG3);
-                add(filt, AugmentationNames.CranialSignalProcessorsG4);
-                add(filt, AugmentationNames.CranialSignalProcessorsG5);
-                add(filt, AugmentationNames.BitWire);
-                add(filt, AugmentationNames.SynapticEnhancement);
-                add(filt, AugmentationNames.ArtificialSynapticPotentiation);
-                add(filt, AugmentationNames.ENM);
-                add(filt, AugmentationNames.ENMCore);
-                add(filt, AugmentationNames.ENMCoreV2);
-                add(filt, AugmentationNames.NeuralRetentionEnhancement);
-                add(filt, AugmentationNames.CRTX42AA);
-                add(filt, AugmentationNames.DataJack);
-                add(filt, AugmentationNames.EnhancedMyelinSheathing);
-                add(filt, AugmentationNames.TheBlackHand);
-                add(filt, AugmentationNames.ArtificialBioNeuralNetwork);
-                add(filt, AugmentationNames.NeuralAccelerator);
-                add(filt, AugmentationNames.Neurolink);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CashRoot));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neuralstimulator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurotrainer1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurotrainer2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG3));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG4));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG5));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.BitWire));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.SynapticEnhancement));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ArtificialSynapticPotentiation));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENM));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCore));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCoreV2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NeuralRetentionEnhancement));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CRTX42AA));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.DataJack));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.EnhancedMyelinSheathing));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.TheBlackHand));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ArtificialBioNeuralNetwork));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NeuralAccelerator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurolink));
                 // Social
-                add(filt, AugmentationNames.SNA);
-                add(filt, AugmentationNames.ADRPheromone1);
-                add(filt, AugmentationNames.Neuregen);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.SNA));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ADRPheromone1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neuregen));
                 // Combat
-                add(filt, AugmentationNames.LuminCloaking1);
-                add(filt, AugmentationNames.LuminCloaking2);
-                add(filt, AugmentationNames.SmartSonar);
-                add(filt, AugmentationNames.PCMatrix,);
-                add(filt, AugmentationNames.INFRARet);
-                add(filt, AugmentationNames.Targeting1);
-                add(filt, AugmentationNames.Targeting2);
-                add(filt, AugmentationNames.CombatRib1);
-                add(filt, AugmentationNames.NanofiberWeave);
-                add(filt, AugmentationNames.NutriGen);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.LuminCloaking1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.LuminCloaking2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.SmartSonar));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.PCMatrix,));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.INFRARet));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Targeting1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Targeting2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CombatRib1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NanofiberWeave));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NutriGen));
                 // Post Daedalus
-                add(filt, AugmentationNames.GrapheneBrachiBlades);
-                add(filt, AugmentationNames.BrachiBlades);
-                add(filt, AugmentationNames.HemoRecirculator);
-                add(filt, AugmentationNames.TheRedPill);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.GrapheneBrachiBlades));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.BrachiBlades));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HemoRecirculator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.TheRedPill));
                 break;
             case 3:
                 // Hacknet
-                add(filt, AugmentationNames.HacknetNodeCPUUpload);
-                add(filt, AugmentationNames.HacknetNodeCacheUpload);
-                add(filt, AugmentationNames.HacknetNodeCoreDNI);
-                add(filt, AugmentationNames.HacknetNodeKernelDNI);
-                add(filt, AugmentationNames.HacknetNodeNICUpload);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCPUUpload));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCacheUpload));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCoreDNI));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeKernelDNI));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeNICUpload));
                 // Hacking
-                add(filt, AugmentationNames.CashRoot);
-                add(filt, AugmentationNames.Neuralstimulator);
-                add(filt, AugmentationNames.Neurotrainer1);
-                add(filt, AugmentationNames.Neurotrainer2);
-                add(filt, AugmentationNames.CranialSignalProcessorsG1);
-                add(filt, AugmentationNames.CranialSignalProcessorsG2);
-                add(filt, AugmentationNames.CranialSignalProcessorsG3);
-                add(filt, AugmentationNames.CranialSignalProcessorsG4);
-                add(filt, AugmentationNames.CranialSignalProcessorsG5);
-                add(filt, AugmentationNames.BitWire);
-                add(filt, AugmentationNames.SynapticEnhancement);
-                add(filt, AugmentationNames.ArtificialSynapticPotentiation);
-                add(filt, AugmentationNames.ENM);
-                add(filt, AugmentationNames.ENMCore);
-                add(filt, AugmentationNames.ENMCoreV2);
-                add(filt, AugmentationNames.NeuralRetentionEnhancement);
-                add(filt, AugmentationNames.CRTX42AA);
-                add(filt, AugmentationNames.DataJack);
-                add(filt, AugmentationNames.EnhancedMyelinSheathing);
-                add(filt, AugmentationNames.TheBlackHand);
-                add(filt, AugmentationNames.ArtificialBioNeuralNetwork);
-                add(filt, AugmentationNames.NeuralAccelerator);
-                add(filt, AugmentationNames.Neurolink);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CashRoot));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neuralstimulator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurotrainer1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurotrainer2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG3));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG4));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG5));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.BitWire));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.SynapticEnhancement));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ArtificialSynapticPotentiation));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENM));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCore));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCoreV2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NeuralRetentionEnhancement));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CRTX42AA));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.DataJack));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.EnhancedMyelinSheathing));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.TheBlackHand));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ArtificialBioNeuralNetwork));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NeuralAccelerator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurolink));
                 // Social
-                add(filt, AugmentationNames.SNA);
-                add(filt, AugmentationNames.ADRPheromone1);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.SNA));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ADRPheromone1));
                 // Post Daedalus
-                add(filt, AugmentationNames.TheRedPill);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.TheRedPill));
                 break;
             case 4:
                 // Hacking
-                add(filt, AugmentationNames.CashRoot);
-                add(filt, AugmentationNames.Neuralstimulator);
-                add(filt, AugmentationNames.Neurotrainer1);
-                add(filt, AugmentationNames.Neurotrainer2);
-                add(filt, AugmentationNames.CranialSignalProcessorsG1);
-                add(filt, AugmentationNames.CranialSignalProcessorsG2);
-                add(filt, AugmentationNames.CranialSignalProcessorsG3);
-                add(filt, AugmentationNames.CranialSignalProcessorsG4);
-                add(filt, AugmentationNames.CranialSignalProcessorsG5);
-                add(filt, AugmentationNames.BitWire);
-                add(filt, AugmentationNames.SynapticEnhancement);
-                add(filt, AugmentationNames.ArtificialSynapticPotentiation);
-                add(filt, AugmentationNames.ENM);
-                add(filt, AugmentationNames.ENMCore);
-                add(filt, AugmentationNames.ENMCoreV2);
-                add(filt, AugmentationNames.NeuralRetentionEnhancement);
-                add(filt, AugmentationNames.CRTX42AA);
-                add(filt, AugmentationNames.DataJack);
-                add(filt, AugmentationNames.EnhancedMyelinSheathing);
-                add(filt, AugmentationNames.TheBlackHand);
-                add(filt, AugmentationNames.ArtificialBioNeuralNetwork);
-                add(filt, AugmentationNames.NeuralAccelerator);
-                add(filt, AugmentationNames.Neurolink);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CashRoot));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neuralstimulator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurotrainer1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurotrainer2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG3));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG4));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG5));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.BitWire));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.SynapticEnhancement));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ArtificialSynapticPotentiation));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENM));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCore));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCoreV2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NeuralRetentionEnhancement));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CRTX42AA));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.DataJack));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.EnhancedMyelinSheathing));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.TheBlackHand));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ArtificialBioNeuralNetwork));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NeuralAccelerator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurolink));
                 // ?
                 // ?
                 // ?
                 // ?
                 // ?
                 // Post Daedalus
-                add(filt, AugmentationNames.TheRedPill);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.TheRedPill));
                 break;
             case 5:
                 // Hacknet
-                add(filt, AugmentationNames.HacknetNodeCPUUpload);
-                add(filt, AugmentationNames.HacknetNodeCacheUpload);
-                add(filt, AugmentationNames.HacknetNodeCoreDNI);
-                add(filt, AugmentationNames.HacknetNodeKernelDNI);
-                add(filt, AugmentationNames.HacknetNodeNICUpload);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCPUUpload));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCacheUpload));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeCoreDNI));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeKernelDNI));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.HacknetNodeNICUpload));
                 // Hacking
-                add(filt, AugmentationNames.CashRoot);
-                add(filt, AugmentationNames.Neuralstimulator);
-                add(filt, AugmentationNames.Neurotrainer1);
-                add(filt, AugmentationNames.Neurotrainer2);
-                add(filt, AugmentationNames.CranialSignalProcessorsG1);
-                add(filt, AugmentationNames.CranialSignalProcessorsG2);
-                add(filt, AugmentationNames.CranialSignalProcessorsG3);
-                add(filt, AugmentationNames.CranialSignalProcessorsG4);
-                add(filt, AugmentationNames.CranialSignalProcessorsG5);
-                add(filt, AugmentationNames.BitWire);
-                add(filt, AugmentationNames.SynapticEnhancement);
-                add(filt, AugmentationNames.ArtificialSynapticPotentiation);
-                add(filt, AugmentationNames.ENM);
-                add(filt, AugmentationNames.ENMCore);
-                add(filt, AugmentationNames.ENMCoreV2);
-                add(filt, AugmentationNames.NeuralRetentionEnhancement);
-                add(filt, AugmentationNames.CRTX42AA);
-                add(filt, AugmentationNames.DataJack);
-                add(filt, AugmentationNames.EnhancedMyelinSheathing);
-                add(filt, AugmentationNames.TheBlackHand);
-                add(filt, AugmentationNames.ArtificialBioNeuralNetwork);
-                add(filt, AugmentationNames.NeuralAccelerator);
-                add(filt, AugmentationNames.Neurolink);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CashRoot));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neuralstimulator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurotrainer1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurotrainer2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG1));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG3));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG4));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CranialSignalProcessorsG5));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.BitWire));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.SynapticEnhancement));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ArtificialSynapticPotentiation));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENM));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCore));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ENMCoreV2));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NeuralRetentionEnhancement));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.CRTX42AA));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.DataJack));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.EnhancedMyelinSheathing));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.TheBlackHand));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ArtificialBioNeuralNetwork));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.NeuralAccelerator));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.Neurolink));
                 // Social
-                add(filt, AugmentationNames.SNA);
-                add(filt, AugmentationNames.ADRPheromone1);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.SNA));
+                filtered_list.push(AugCache.read(ns, AugmentationNames.ADRPheromone1));
                 // Post Daedalus
-                add(filt, AugmentationNames.TheRedPill);
+                filtered_list.push(AugCache.read(ns, AugmentationNames.TheRedPill));
                 break;
             default:
                 ns.tprint("Lost BitNode cache, can't determine current bitnode")
                 break;
         }
 
-        return filt
+        return filtered_list
     }
 }
 

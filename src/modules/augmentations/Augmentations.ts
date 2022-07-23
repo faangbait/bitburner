@@ -14,6 +14,7 @@ class Augmentation {
     stats: AugStats;
     owned = false;
     installed = false;
+    wanted = false;
 
     constructor(ns: NS, name: string) {
         this.id = name;
